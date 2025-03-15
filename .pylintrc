@@ -1,0 +1,49 @@
+[MASTER]
+# Python バージョン
+py-version = 3.9
+
+# モジュールをインポートする際に実行
+init-hook='import sys; sys.path.append(".")'
+
+# 無効にする警告
+disable=
+    missing-module-docstring,
+    missing-class-docstring,
+    missing-function-docstring,
+    fixme,
+    broad-except,
+    import-error,
+    no-name-in-module,
+    invalid-name,
+    unused-import,
+    too-many-arguments,
+    too-many-locals,
+    too-few-public-methods,
+    too-many-instance-attributes,
+    line-too-long,
+    no-member,
+    consider-using-f-string,
+    pointless-string-statement,
+    duplicate-code,
+    unspecified-encoding,
+    expression-not-assigned
+
+[FORMAT]
+# 最大行長
+max-line-length = 120
+
+[BASIC]
+# 良い変数名の正規表現
+good-names = i, j, k, ex, Run, _, id, e, db, df, fn, io
+
+[SIMILARITIES]
+# 重複コードの最小行数
+min-similarity-lines = 10
+
+[DESIGN]
+# 引数の最大数
+max-args = 10
+# 属性の最大数
+max-attributes = 15
+# ローカル変数の最大数
+max-locals = 20
