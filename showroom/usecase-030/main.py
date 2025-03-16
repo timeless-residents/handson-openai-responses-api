@@ -81,32 +81,80 @@ def setup_tools():
             "type": "function",
             "name": "get_product_info",
             "description": "商品IDを指定して商品の詳細情報を取得します",
-            "parameters": ProductInfoRequest.model_json_schema(),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "product_id": {
+                        "type": "string",
+                        "description": "商品ID（例: TS-100）"
+                    }
+                },
+                "required": ["product_id"]
+            }
         },
         {
             "type": "function",
             "name": "search_products",
             "description": "キーワードで商品を検索します",
-            "parameters": SearchProductsRequest.model_json_schema(),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "description": "検索キーワード"
+                    },
+                    "category": {
+                        "type": "string",
+                        "description": "商品カテゴリ（指定しない場合は全カテゴリから検索）"
+                    }
+                },
+                "required": ["query"]
+            }
         },
         {
             "type": "function",
             "name": "get_faq",
             "description": "よくある質問（FAQ）を検索します",
-            "parameters": FaqRequest.model_json_schema(),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "description": "検索キーワード（指定しない場合は全FAQを取得）"
+                    }
+                }
+            }
         },
         {
             "type": "function",
             "name": "get_policy",
             "description": "会社のポリシー情報を取得します",
-            "parameters": PolicyRequest.model_json_schema(),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "policy_type": {
+                        "type": "string",
+                        "description": "ポリシータイプ（shipping, returns, warranty, privacy）"
+                    }
+                },
+                "required": ["policy_type"]
+            }
         },
         {
             "type": "function",
             "name": "get_order_status",
             "description": "注文IDを指定して注文状況を確認します",
-            "parameters": OrderStatusRequest.model_json_schema(),
-        },
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "order_id": {
+                        "type": "string",
+                        "description": "注文ID（例: ORD-12345）"
+                    }
+                },
+                "required": ["order_id"]
+            }
+        }
     ]
 
 
