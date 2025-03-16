@@ -149,12 +149,24 @@ def get_language_name(language_code: str) -> str:
 
 def chunk_text(text: str, max_chunk_size: int = 4000) -> List[str]:
     """テキストを文単位で分割し、指定サイズ以下のチャンクに分けます。"""
-    sentences = sent_tokenize(text)
+    try:
+        # 通常の文分割を試みる
+        sentences = sent_tokenize(text)
+    except Exception as e:
+        print(f"chunk_text: 文分割エラー: {str(e)}")
+        # 代替として段落（改行）で分割
+        print("代替として段落による分割を使用します。")
+        sentences = [s.strip() for s in text.split('\n') if s.strip()]
+        if not sentences:
+            # 改行での分割が失敗した場合は、単純に文字数で分割
+            print("最終手段として固定長分割を使用します。")
+            sentences = [text[i:i+200] for i in range(0, len(text), 200)]
+    
     chunks = []
     current_chunk = ""
     
     for sentence in sentences:
-        # この文を追加しても最大サイズを超えない場合
+        # この文/段落を追加しても最大サイズを超えない場合
         if len(current_chunk) + len(sentence) + 1 <= max_chunk_size:
             current_chunk += sentence + " "
         # 最大サイズを超える場合
@@ -164,6 +176,23 @@ def chunk_text(text: str, max_chunk_size: int = 4000) -> List[str]:
                 chunks.append(current_chunk.strip())
             # 新しいチャンクを開始
             current_chunk = sentence + " "
+            
+            # もし一文だけで最大サイズを超える場合は、その文自体を分割
+            if len(sentence) > max_chunk_size:
+                # 既に追加した文をチャンクから取り除く
+                chunks.pop()
+                # 文を単語単位で分割して複数のチャンクに
+                words = sentence.split()
+                sub_chunk = ""
+                for word in words:
+                    if len(sub_chunk) + len(word) + 1 <= max_chunk_size:
+                        sub_chunk += word + " "
+                    else:
+                        chunks.append(sub_chunk.strip())
+                        sub_chunk = word + " "
+                if sub_chunk:
+                    chunks.append(sub_chunk.strip())
+                current_chunk = ""
     
     # 最後のチャンクをリストに追加
     if current_chunk:
@@ -270,7 +299,15 @@ def summarize_text(
     format_instruction = "箇条書きのリスト形式で要約を提示してください。" if format_as_bullets else "段落形式で要約を提示してください。"
     
     # テキストを適切なサイズにチャンク分割
-    chunks = chunk_text(text)
+    try:
+        chunks = chunk_text(text)
+        print(f"{len(chunks)}のチャンクに分割しました。")
+    except Exception as e:
+        print(f"チャンク分割エラー: {str(e)}")
+        # 極めて単純なフォールバック - 固定長で分割
+        print("テキストを単純な固定長分割に切り替えています...")
+        chunks = [text[i:i+3000] for i in range(0, len(text), 3000)]
+        print(f"単純分割で{len(chunks)}のチャンクに分割しました。")
     
     # チャンクが1つの場合は直接要約
     if len(chunks) == 1:
