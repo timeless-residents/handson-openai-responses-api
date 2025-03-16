@@ -25,7 +25,7 @@ from government_data import (
     get_event_info,
     search_events,
     get_faq,
-    get_emergency_info
+    get_emergency_info,
 )
 
 # Python 3.7以降の場合、標準入出力のエンコーディングをUTF-8に設定
@@ -40,7 +40,7 @@ def setup_environment():
     script_dir = os.path.dirname(os.path.abspath(__file__))
     root_dir = os.path.dirname(os.path.dirname(script_dir))
     load_dotenv(os.path.join(root_dir, ".env"))
-    
+
     api_key = os.environ.get("OPENAI_API_KEY")
     if not api_key:
         raise ValueError("OPENAI_API_KEY が設定されていません")
@@ -49,53 +49,80 @@ def setup_environment():
 
 # --- ツール関数のモデル定義 ---
 
+
 class ProcedureInfoRequest(BaseModel):
     """行政手続き情報取得のリクエストモデル"""
+
     procedure_id: str = Field(..., description="手続きID（例: CERT-001）")
 
 
 class SearchProceduresRequest(BaseModel):
     """行政手続き検索のリクエストモデル"""
+
     query: str = Field(..., description="検索キーワード")
-    category: Optional[str] = Field(None, description="手続きカテゴリ（residence:住民関連, tax:税金関連, welfare:福祉関連）")
+    category: Optional[str] = Field(
+        None,
+        description="手続きカテゴリ（residence:住民関連, tax:税金関連, welfare:福祉関連）",
+    )
 
 
 class FacilityInfoRequest(BaseModel):
     """施設情報取得のリクエストモデル"""
+
     facility_id: str = Field(..., description="施設ID（例: LIB-001）")
 
 
 class SearchFacilitiesRequest(BaseModel):
     """施設検索のリクエストモデル"""
+
     query: str = Field(..., description="検索キーワード")
-    facility_type: Optional[str] = Field(None, description="施設タイプ（library:図書館, community:公民館, sports:スポーツ施設, government:行政施設）")
+    facility_type: Optional[str] = Field(
+        None,
+        description="施設タイプ（library:図書館, community:公民館, sports:スポーツ施設, government:行政施設）",
+    )
 
 
 class EventInfoRequest(BaseModel):
     """イベント情報取得のリクエストモデル"""
+
     event_id: str = Field(..., description="イベントID（例: EVENT-001）")
 
 
 class SearchEventsRequest(BaseModel):
     """イベント検索のリクエストモデル"""
+
     query: Optional[str] = Field(None, description="検索キーワード")
     date_from: Optional[str] = Field(None, description="開始日（YYYY-MM-DD形式）")
     date_to: Optional[str] = Field(None, description="終了日（YYYY-MM-DD形式）")
-    event_type: Optional[str] = Field(None, description="イベントタイプ（seminar:セミナー, festival:お祭り, consultation:相談会, workshop:ワークショップ）")
+    event_type: Optional[str] = Field(
+        None,
+        description="イベントタイプ（seminar:セミナー, festival:お祭り, consultation:相談会, workshop:ワークショップ）",
+    )
 
 
 class FaqRequest(BaseModel):
     """FAQ検索のリクエストモデル"""
-    query: Optional[str] = Field(None, description="検索キーワード（指定しない場合は全FAQを取得）")
-    category: Optional[str] = Field(None, description="カテゴリ（garbage:ゴミ, tax:税金, childcare:子育て, elderly:高齢者, disaster:防災）")
+
+    query: Optional[str] = Field(
+        None, description="検索キーワード（指定しない場合は全FAQを取得）"
+    )
+    category: Optional[str] = Field(
+        None,
+        description="カテゴリ（garbage:ゴミ, tax:税金, childcare:子育て, elderly:高齢者, disaster:防災）",
+    )
 
 
 class EmergencyInfoRequest(BaseModel):
     """緊急情報取得のリクエストモデル"""
-    info_type: Optional[str] = Field(None, description="情報タイプ（disaster:災害情報, weather:気象情報, health:健康・感染症情報）")
+
+    info_type: Optional[str] = Field(
+        None,
+        description="情報タイプ（disaster:災害情報, weather:気象情報, health:健康・感染症情報）",
+    )
 
 
 # --- ツール定義 ---
+
 
 def setup_tools():
     """ツール定義を設定します。"""
@@ -109,11 +136,11 @@ def setup_tools():
                 "properties": {
                     "procedure_id": {
                         "type": "string",
-                        "description": "手続きID（例: CERT-001）"
+                        "description": "手続きID（例: CERT-001）",
                     }
                 },
-                "required": ["procedure_id"]
-            }
+                "required": ["procedure_id"],
+            },
         },
         {
             "type": "function",
@@ -122,17 +149,14 @@ def setup_tools():
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "query": {
-                        "type": "string",
-                        "description": "検索キーワード"
-                    },
+                    "query": {"type": "string", "description": "検索キーワード"},
                     "category": {
                         "type": "string",
-                        "description": "手続きカテゴリ（residence:住民関連, tax:税金関連, welfare:福祉関連）"
-                    }
+                        "description": "手続きカテゴリ（residence:住民関連, tax:税金関連, welfare:福祉関連）",
+                    },
                 },
-                "required": ["query"]
-            }
+                "required": ["query"],
+            },
         },
         {
             "type": "function",
@@ -143,11 +167,11 @@ def setup_tools():
                 "properties": {
                     "facility_id": {
                         "type": "string",
-                        "description": "施設ID（例: LIB-001）"
+                        "description": "施設ID（例: LIB-001）",
                     }
                 },
-                "required": ["facility_id"]
-            }
+                "required": ["facility_id"],
+            },
         },
         {
             "type": "function",
@@ -156,17 +180,14 @@ def setup_tools():
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "query": {
-                        "type": "string",
-                        "description": "検索キーワード"
-                    },
+                    "query": {"type": "string", "description": "検索キーワード"},
                     "facility_type": {
                         "type": "string",
-                        "description": "施設タイプ（library:図書館, community:公民館, sports:スポーツ施設, government:行政施設）"
-                    }
+                        "description": "施設タイプ（library:図書館, community:公民館, sports:スポーツ施設, government:行政施設）",
+                    },
                 },
-                "required": ["query"]
-            }
+                "required": ["query"],
+            },
         },
         {
             "type": "function",
@@ -177,11 +198,11 @@ def setup_tools():
                 "properties": {
                     "event_id": {
                         "type": "string",
-                        "description": "イベントID（例: EVENT-001）"
+                        "description": "イベントID（例: EVENT-001）",
                     }
                 },
-                "required": ["event_id"]
-            }
+                "required": ["event_id"],
+            },
         },
         {
             "type": "function",
@@ -190,24 +211,21 @@ def setup_tools():
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "query": {
-                        "type": "string",
-                        "description": "検索キーワード"
-                    },
+                    "query": {"type": "string", "description": "検索キーワード"},
                     "date_from": {
                         "type": "string",
-                        "description": "開始日（YYYY-MM-DD形式）"
+                        "description": "開始日（YYYY-MM-DD形式）",
                     },
                     "date_to": {
                         "type": "string",
-                        "description": "終了日（YYYY-MM-DD形式）"
+                        "description": "終了日（YYYY-MM-DD形式）",
                     },
                     "event_type": {
                         "type": "string",
-                        "description": "イベントタイプ（seminar:セミナー, festival:お祭り, consultation:相談会, workshop:ワークショップ）"
-                    }
-                }
-            }
+                        "description": "イベントタイプ（seminar:セミナー, festival:お祭り, consultation:相談会, workshop:ワークショップ）",
+                    },
+                },
+            },
         },
         {
             "type": "function",
@@ -216,16 +234,13 @@ def setup_tools():
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "query": {
-                        "type": "string",
-                        "description": "検索キーワード"
-                    },
+                    "query": {"type": "string", "description": "検索キーワード"},
                     "category": {
                         "type": "string",
-                        "description": "カテゴリ（garbage:ゴミ, tax:税金, childcare:子育て, elderly:高齢者, disaster:防災）"
-                    }
-                }
-            }
+                        "description": "カテゴリ（garbage:ゴミ, tax:税金, childcare:子育て, elderly:高齢者, disaster:防災）",
+                    },
+                },
+            },
         },
         {
             "type": "function",
@@ -236,25 +251,26 @@ def setup_tools():
                 "properties": {
                     "info_type": {
                         "type": "string",
-                        "description": "情報タイプ（disaster:災害情報, weather:気象情報, health:健康・感染症情報）"
+                        "description": "情報タイプ（disaster:災害情報, weather:気象情報, health:健康・感染症情報）",
                     }
-                }
-            }
-        }
+                },
+            },
+        },
     ]
 
 
 # --- チャットボット処理関数 ---
 
+
 def process_chat(client, user_message, conversation_history=None):
     """
     ユーザーからのメッセージを処理し、適切な応答を生成します。
-    
+
     Args:
         client (openai.Client): OpenAIクライアント
         user_message (str): ユーザーからのメッセージ
         conversation_history (list, optional): 過去の会話履歴
-    
+
     Returns:
         dict: 応答メッセージとステータス
     """
@@ -273,6 +289,8 @@ def process_chat(client, user_message, conversation_history=None):
     5. 個人の状況によって異なる可能性がある場合は、一般的な情報を提供し、詳細は窓口での相談を案内する
     6. 行政サービスの利用方法についてはできるだけ具体的に説明し、必要書類や手続き方法を案内する
     7. 緊急の相談（災害、生活困窮など）については、適切な窓口や連絡先を案内する
+    8. Markdownは使用せず、HTMLタグを使って情報を整形する。番号付きリストは<ol><li>項目</li></ol>、箇条書きは<ul><li>項目</li></ul>を使用
+    9. 電話番号やリンクはHTML形式で記述する（例：<a href="URL">テキスト</a>）
     
     市民が以下のような質問をした場合は、対応するツールを使用してください：
     - 行政手続きに関する質問 → get_procedure_info または search_procedures
@@ -281,11 +299,11 @@ def process_chat(client, user_message, conversation_history=None):
     - よくある質問 → get_faq
     - 緊急情報 → get_emergency_info
     """
-    
+
     # 会話履歴がある場合は、それを含めてリクエストを作成
     messages = []
     previous_response_id = None
-    
+
     if conversation_history:
         for msg in conversation_history:
             if msg["role"] == "user":
@@ -293,10 +311,10 @@ def process_chat(client, user_message, conversation_history=None):
             elif msg["role"] == "assistant" and "response_id" in msg:
                 messages.append({"role": "assistant", "content": msg["content"]})
                 previous_response_id = msg["response_id"]
-    
+
     # 現在のユーザーメッセージを追加
     messages.append({"role": "user", "content": user_message})
-    
+
     # OpenAI APIを呼び出し
     try:
         response = client.responses.create(
@@ -307,7 +325,7 @@ def process_chat(client, user_message, conversation_history=None):
             tool_choice="auto",
             previous_response_id=previous_response_id,
         )
-        
+
         # 関数呼び出しがある場合は処理
         function_calls = [msg for msg in response.output if msg.type == "function_call"]
         if function_calls:
@@ -316,7 +334,7 @@ def process_chat(client, user_message, conversation_history=None):
                 # 関数名とパラメータを取得
                 func_name = fc.name
                 params = json.loads(fc.arguments)
-                
+
                 # 対応する関数を呼び出し
                 if func_name == "get_procedure_info":
                     result = get_procedure_info(**params)
@@ -336,14 +354,16 @@ def process_chat(client, user_message, conversation_history=None):
                     result = get_emergency_info(**params)
                 else:
                     result = {"error": "未実装の関数です"}
-                
+
                 # 関数の出力を追加
-                function_outputs.append({
-                    "type": "function_call_output",
-                    "call_id": fc.call_id,
-                    "output": json.dumps(result, ensure_ascii=False),
-                })
-            
+                function_outputs.append(
+                    {
+                        "type": "function_call_output",
+                        "call_id": fc.call_id,
+                        "output": json.dumps(result, ensure_ascii=False),
+                    }
+                )
+
             # ツール出力を含めて最終応答を生成
             final_response = client.responses.create(
                 model="gpt-4o",
@@ -351,20 +371,20 @@ def process_chat(client, user_message, conversation_history=None):
                 input=function_outputs,
                 previous_response_id=response.id,
             )
-            
+
             return {
                 "status": "success",
                 "message": final_response.output_text,
                 "response_id": final_response.id,
             }
-        
+
         # 関数呼び出しがない場合は直接レスポンスを返す
         return {
             "status": "success",
             "message": response.output_text,
             "response_id": response.id,
         }
-        
+
     except Exception as e:
         return {
             "status": "error",
@@ -374,37 +394,44 @@ def process_chat(client, user_message, conversation_history=None):
 
 # --- コンソールインターフェース ---
 
+
 def console_interface():
     """コンソールベースのチャットインターフェース"""
     api_key = setup_environment()
     client = openai.Client(api_key=api_key)
     conversation_history = []
-    
+
     print("市民向け行政サービス案内AIアシスタントへようこそ！")
-    print("行政手続き、施設情報、イベント情報などについてお気軽にお問い合わせください。")
+    print(
+        "行政手続き、施設情報、イベント情報などについてお気軽にお問い合わせください。"
+    )
     print("終了するには 'exit' と入力してください。\n")
-    
+
     while True:
         user_input = input("市民: ")
         if user_input.lower() in ["exit", "quit", "終了"]:
-            print("\nご利用ありがとうございました。また何かありましたらお気軽にお問い合わせください。")
+            print(
+                "\nご利用ありがとうございました。また何かありましたらお気軽にお問い合わせください。"
+            )
             break
-        
+
         # ユーザーメッセージを会話履歴に追加
         conversation_history.append({"role": "user", "content": user_input})
-        
+
         # チャットボットの応答を処理
         print("\n処理中...\n")
         response = process_chat(client, user_input, conversation_history)
-        
+
         if response["status"] == "success":
             print(f"アシスタント: {response['message']}\n")
             # アシスタントの応答を会話履歴に追加
-            conversation_history.append({
-                "role": "assistant",
-                "content": response["message"],
-                "response_id": response.get("response_id")
-            })
+            conversation_history.append(
+                {
+                    "role": "assistant",
+                    "content": response["message"],
+                    "response_id": response.get("response_id"),
+                }
+            )
         else:
             print(f"エラー: {response['message']}\n")
 
@@ -415,22 +442,22 @@ app = Flask(__name__)
 api_client = None
 
 
-@app.route('/')
+@app.route("/")
 def home():
     """ホームページを表示"""
-    return render_template('index.html')
+    return render_template("index.html")
 
 
-@app.route('/api/chat', methods=['POST'])
+@app.route("/api/chat", methods=["POST"])
 def chat():
     """チャットAPIエンドポイント"""
     data = request.json
-    user_message = data.get('message')
-    conversation_history = data.get('history', [])
-    
+    user_message = data.get("message")
+    conversation_history = data.get("history", [])
+
     if not user_message:
         return jsonify({"status": "error", "message": "メッセージが空です"})
-    
+
     response = process_chat(api_client, user_message, conversation_history)
     return jsonify(response)
 
@@ -440,10 +467,10 @@ def web_interface():
     global api_client
     api_key = setup_environment()
     api_client = openai.Client(api_key=api_key)
-    
+
     # テンプレートディレクトリの作成
-    os.makedirs(os.path.join(os.path.dirname(__file__), 'templates'), exist_ok=True)
-    
+    os.makedirs(os.path.join(os.path.dirname(__file__), "templates"), exist_ok=True)
+
     # HTMLテンプレートの作成
     html_template = """
     <!DOCTYPE html>
@@ -602,7 +629,10 @@ def web_interface():
                 const messageDiv = document.createElement('div');
                 messageDiv.classList.add('message');
                 messageDiv.classList.add(isUser ? 'user-message' : 'bot-message');
-                messageDiv.textContent = message;
+                
+                // HTMLタグを適切に処理するためinnerHTMLを使用
+                messageDiv.innerHTML = isUser ? message : message;
+                
                 chatContainer.appendChild(messageDiv);
                 chatContainer.scrollTop = chatContainer.scrollHeight;
                 
@@ -616,7 +646,7 @@ def web_interface():
             function addSystemMessage(message) {
                 const messageDiv = document.createElement('div');
                 messageDiv.classList.add('system-message');
-                messageDiv.textContent = message;
+                messageDiv.innerHTML = message;  // HTMLタグを適切に処理するためinnerHTML使用
                 chatContainer.appendChild(messageDiv);
                 chatContainer.scrollTop = chatContainer.scrollHeight;
             }
@@ -706,15 +736,19 @@ def web_interface():
     </body>
     </html>
     """
-    
+
     # テンプレートを保存
-    with open(os.path.join(os.path.dirname(__file__), 'templates', 'index.html'), 'w', encoding='utf-8') as f:
+    with open(
+        os.path.join(os.path.dirname(__file__), "templates", "index.html"),
+        "w",
+        encoding="utf-8",
+    ) as f:
         f.write(html_template)
-    
+
     # Flaskアプリの起動
     print("Webインターフェースを起動しています...")
-    print("以下のURLにアクセスしてください: http://localhost:5000")
-    app.run(debug=True)
+    print("以下のURLにアクセスしてください: http://localhost:5003")
+    app.run(host="localhost", port=5003, debug=True)
 
 
 def main():
@@ -723,9 +757,9 @@ def main():
     print("インターフェースを選択してください:")
     print("1: コンソールインターフェース（テキストベース）")
     print("2: Webインターフェース（ブラウザベース）")
-    
+
     choice = input("\n選択してください (1 または 2): ").strip()
-    
+
     if choice == "1":
         console_interface()
     elif choice == "2":
