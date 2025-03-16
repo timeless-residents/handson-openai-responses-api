@@ -158,7 +158,7 @@ def create_visualization_charts(df: pd.DataFrame) -> List[Dict[str, str]]:
             plt.close()
             
             # パスは相対パスでHTMLから参照できるように調整
-            relative_path = f"./charts/category_dist_{i}_{timestamp}.png"
+            relative_path = f"../charts/category_dist_{i}_{timestamp}.png"
             charts.append({
                 "title": f"{col}の分布",
                 "path": relative_path
@@ -175,7 +175,7 @@ def create_visualization_charts(df: pd.DataFrame) -> List[Dict[str, str]]:
         plt.savefig(chart_path, dpi=100, bbox_inches='tight')
         plt.close()
         
-        relative_path = f"./charts/boxplot_{timestamp}.png"
+        relative_path = f"../charts/boxplot_{timestamp}.png"
         charts.append({
             "title": "数値データの分布（箱ひげ図）",
             "path": relative_path
@@ -203,7 +203,7 @@ def create_visualization_charts(df: pd.DataFrame) -> List[Dict[str, str]]:
         plt.savefig(chart_path, dpi=100, bbox_inches='tight')
         plt.close()
         
-        relative_path = f"./charts/correlation_{timestamp}.png"
+        relative_path = f"../charts/correlation_{timestamp}.png"
         charts.append({
             "title": "変数間の相関ヒートマップ",
             "path": relative_path
@@ -243,7 +243,7 @@ def create_visualization_charts(df: pd.DataFrame) -> List[Dict[str, str]]:
         plt.savefig(chart_path, dpi=100, bbox_inches='tight')
         plt.close()
         
-        relative_path = f"./charts/time_series_{timestamp}.png"
+        relative_path = f"../charts/time_series_{timestamp}.png"
         charts.append({
             "title": f"{numeric_col}の時系列変化",
             "path": relative_path
