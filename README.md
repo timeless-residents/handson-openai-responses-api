@@ -95,7 +95,7 @@ python showroom/usecase-000/main.py
 
 ### 応用シナリオ（公共利用）
 
-- **usecase-040**: 市民向け行政サービス案内
+- **usecase-040**: [市民向け行政サービス案内](showroom/usecase-040/README.md) - 行政手続きや公共サービスに関する情報を提供する対話型市民サポートシステム
 - **usecase-041**: 医療情報の理解支援と説明
 - **usecase-042**: 災害情報の整理と配信支援
 - **usecase-043**: 教育コンテンツの生成と適応
