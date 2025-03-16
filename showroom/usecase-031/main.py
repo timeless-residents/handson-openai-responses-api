@@ -48,7 +48,20 @@ def setup_japanese_fonts():
         print(f"フォントキャッシュのクリアに失敗: {e}")
     
     # フォントマネージャーを再構築
-    fm._rebuild()
+    try:
+        # 新しいバージョンのmatplotlib
+        if hasattr(fm, '_rebuild'):
+            fm._rebuild()
+        # 古いバージョンのmatplotlib
+        elif hasattr(fm, 'fontManager'):
+            fm.fontManager.findfont.cache.clear()
+            fm.fontManager._load_fontmanager(try_read_cache=False)
+        # もっと古いバージョン
+        else:
+            fm._get_fontconfig_fonts.cache_clear()
+            fm.findfont.cache_clear()
+    except Exception as e:
+        print(f"フォントキャッシュのリセットに失敗しましたが、処理を続行します: {e}")
     
     # 日本語フォント候補（優先順位順）
     japanese_font_names = [
