@@ -81,31 +81,31 @@ def setup_tools():
             "type": "function",
             "name": "get_product_info",
             "description": "商品IDを指定して商品の詳細情報を取得します",
-            "parameters": ProductInfoRequest.schema(),
+            "parameters": ProductInfoRequest.model_json_schema(),
         },
         {
             "type": "function",
             "name": "search_products",
             "description": "キーワードで商品を検索します",
-            "parameters": SearchProductsRequest.schema(),
+            "parameters": SearchProductsRequest.model_json_schema(),
         },
         {
             "type": "function",
             "name": "get_faq",
             "description": "よくある質問（FAQ）を検索します",
-            "parameters": FaqRequest.schema(),
+            "parameters": FaqRequest.model_json_schema(),
         },
         {
             "type": "function",
             "name": "get_policy",
             "description": "会社のポリシー情報を取得します",
-            "parameters": PolicyRequest.schema(),
+            "parameters": PolicyRequest.model_json_schema(),
         },
         {
             "type": "function",
             "name": "get_order_status",
             "description": "注文IDを指定して注文状況を確認します",
-            "parameters": OrderStatusRequest.schema(),
+            "parameters": OrderStatusRequest.model_json_schema(),
         },
     ]
 
@@ -146,25 +146,26 @@ def process_chat(client, user_message, conversation_history=None):
     """
     
     # 会話履歴がある場合は、それを含めてリクエストを作成
-    input_messages = []
+    messages = []
     previous_response_id = None
     
     if conversation_history:
         for msg in conversation_history:
             if msg["role"] == "user":
-                input_messages.append({"type": "text", "text": msg["content"]})
+                messages.append({"role": "user", "content": msg["content"]})
             elif msg["role"] == "assistant" and "response_id" in msg:
+                messages.append({"role": "assistant", "content": msg["content"]})
                 previous_response_id = msg["response_id"]
     
     # 現在のユーザーメッセージを追加
-    input_messages.append({"type": "text", "text": user_message})
+    messages.append({"role": "user", "content": user_message})
     
     # OpenAI APIを呼び出し
     try:
         response = client.responses.create(
             model="gpt-4o",
             instructions=instructions,
-            input=input_messages if len(input_messages) > 1 else input_messages[0]["text"],
+            input=messages,
             tools=tools,
             tool_choice="auto",
             previous_response_id=previous_response_id,
