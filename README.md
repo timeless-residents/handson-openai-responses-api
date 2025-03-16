@@ -90,8 +90,8 @@ python showroom/usecase-000/main.py
 - **usecase-035**: [データ分析レポート自動生成](showroom/usecase-035/README.md) - 販売データからAIを活用した詳細な分析レポートを自動生成するツール
 - **usecase-036**: [法的文書のレビューと要約](showroom/usecase-036/README.md) - PDF形式の法的文書を分析し、要約・リスク評価・専門用語の説明を行うWebアプリケーション
 - **usecase-037**: [個人向け学習アシスタント](showroom/usecase-037/README.md) - AIを活用してパーソナライズされたコンテンツと学習プランを提供する学習支援アプリケーション
-- **usecase-038**: メディア内容のモデレーションと分類
-- **usecase-039**: eコマース商品の説明生成
+- **usecase-038**: [メディア内容のモデレーションと分類](showroom/usecase-038/README.md) - テキストコンテンツの安全性評価とポリシー違反検出を行うモデレーションツール
+- **usecase-039**: [データ分析と可視化レポート生成](showroom/usecase-039/README.md) - CSV/JSONデータの自動分析とインサイト抽出を行う対話型分析ツール
 
 ### 応用シナリオ（公共利用）
 
