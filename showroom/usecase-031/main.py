@@ -16,6 +16,7 @@ import math
 import re
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib
 import seaborn as sns
 from datetime import datetime
 from collections import Counter, defaultdict
@@ -27,6 +28,25 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.decomposition import LatentDirichletAllocation
 from dotenv import load_dotenv
 import openai
+
+# 日本語フォント設定（Matplotlibで日本語を表示するため）
+# 利用可能なフォントがない場合はエラーが出るので、try-exceptで囲む
+try:
+    # macOSの場合
+    if sys.platform.startswith('darwin'):
+        matplotlib.rcParams['font.family'] = 'AppleGothic'
+    # Windowsの場合
+    elif sys.platform.startswith('win'):
+        matplotlib.rcParams['font.family'] = 'MS Gothic'
+    # Linuxの場合
+    else:
+        matplotlib.rcParams['font.family'] = 'IPAGothic'
+    
+    # フォールバック設定
+    matplotlib.rcParams['axes.unicode_minus'] = False  # マイナス記号を正しく表示
+except Exception as e:
+    print(f"警告: 日本語フォントの設定に失敗しました。グラフのタイトルやラベルが文字化けする可能性があります。")
+    print(f"エラー詳細: {str(e)}")
 
 # 商品レビューデータを読み込み
 from review_data import (
@@ -177,15 +197,66 @@ def create_word_cloud(tokenized_reviews, title="頻出ワードクラウド"):
     # 単語の出現頻度をカウント
     word_freq = Counter(all_tokens)
     
+    # 日本語フォントの設定
+    font_path = None
+    
+    # OSに応じたフォントパスの設定
+    if sys.platform.startswith('darwin'):  # macOS
+        possible_fonts = [
+            '/System/Library/Fonts/ヒラギノ角ゴシック W4.ttc',
+            '/System/Library/Fonts/AppleGothic.ttf',
+            '/System/Library/Fonts/ヒラギノ丸ゴ ProN W4.ttc'
+        ]
+    elif sys.platform.startswith('win'):  # Windows
+        possible_fonts = [
+            'C:\\Windows\\Fonts\\msgothic.ttc',
+            'C:\\Windows\\Fonts\\meiryo.ttc'
+        ]
+    else:  # Linux
+        possible_fonts = [
+            '/usr/share/fonts/truetype/fonts-japanese-gothic.ttf',
+            '/usr/share/fonts/truetype/ipafont-gothic/ipag.ttf'
+        ]
+    
+    # 利用可能なフォントを探す
+    for font in possible_fonts:
+        if os.path.exists(font):
+            font_path = font
+            break
+    
     # ワードクラウドの作成
-    wordcloud = WordCloud(
-        width=800,
-        height=400,
-        background_color="white",
-        max_words=100,
-        contour_width=3,
-        contour_color="steelblue",
-    ).generate_from_frequencies(word_freq)
+    try:
+        if font_path:
+            wordcloud = WordCloud(
+                font_path=font_path,  # 日本語フォントパス
+                width=800,
+                height=400,
+                background_color="white",
+                max_words=100,
+                contour_width=3,
+                contour_color="steelblue",
+            ).generate_from_frequencies(word_freq)
+        else:
+            print("警告: 適切な日本語フォントが見つかりませんでした。デフォルトフォントを使用します。")
+            wordcloud = WordCloud(
+                width=800,
+                height=400,
+                background_color="white",
+                max_words=100,
+                contour_width=3,
+                contour_color="steelblue",
+            ).generate_from_frequencies(word_freq)
+    except Exception as e:
+        print(f"ワードクラウド生成エラー: {str(e)}")
+        print("デフォルト設定でワードクラウドを生成します。")
+        wordcloud = WordCloud(
+            width=800,
+            height=400,
+            background_color="white",
+            max_words=100,
+            contour_width=3,
+            contour_color="steelblue",
+        ).generate_from_frequencies(word_freq)
     
     plt.figure(figsize=(10, 6))
     plt.imshow(wordcloud, interpolation="bilinear")
