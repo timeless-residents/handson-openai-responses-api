@@ -1,0 +1,93 @@
+
+        <!DOCTYPE html>
+        <html lang="ja">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>販売データ分析レポート</title>
+            <style>
+                body {
+                    font-family: 'Helvetica Neue', Arial, sans-serif;
+                    line-height: 1.6;
+                    color: #333;
+                    max-width: 1200px;
+                    margin: 0 auto;
+                    padding: 20px;
+                }
+                h1 {
+                    color: #2c3e50;
+                    border-bottom: 2px solid #3498db;
+                    padding-bottom: 10px;
+                }
+                h2 {
+                    color: #2980b9;
+                    margin-top: 30px;
+                }
+                h3 {
+                    color: #3498db;
+                }
+                .report-date {
+                    color: #7f8c8d;
+                    font-size: 0.9em;
+                    margin-bottom: 30px;
+                }
+                .visualization {
+                    margin: 30px 0;
+                    text-align: center;
+                }
+                .visualization img {
+                    max-width: 100%;
+                    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+                    border-radius: 5px;
+                }
+                .visualization-title {
+                    font-weight: bold;
+                    margin-top: 10px;
+                    font-size: 1.1em;
+                }
+                .visualization-description {
+                    color: #555;
+                    font-size: 0.9em;
+                }
+                .report-content {
+                    margin-top: 40px;
+                }
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin: 20px 0;
+                }
+                th, td {
+                    padding: 10px;
+                    border: 1px solid #ddd;
+                }
+                th {
+                    background-color: #f6f8fa;
+                }
+                tr:nth-child(even) {
+                    background-color: #f9f9f9;
+                }
+            </style>
+        </head>
+        <body>
+            <h1>販売データ分析レポート</h1>
+            <div class="report-date">
+                レポート生成日: {{ generation_date }}
+            </div>
+            
+            <div class="visualizations">
+                {% for viz in visualizations %}
+                <div class="visualization">
+                    <img src="{{ viz.image_data }}" alt="{{ viz.title }}">
+                    <div class="visualization-title">{{ viz.title }}</div>
+                    <div class="visualization-description">{{ viz.description }}</div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="report-content">
+                {{ report_content | safe }}
+            </div>
+        </body>
+        </html>
+        
