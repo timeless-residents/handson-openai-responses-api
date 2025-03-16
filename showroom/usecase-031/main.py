@@ -186,21 +186,79 @@ def prepare_reviews_dataframe(reviews):
 
 def clean_review_text(text):
     """レビューテキストのクリーニングを行います。"""
-    text = text.lower()
-    text = re.sub(r"[^\w\s]", "", text)
-    text = re.sub(r"\d+", "", text)
+    # 日本語テキスト用のクリーニング
+    # 英数字は小文字に変換するが、日本語はそのまま
+    text_lower = ""
+    for char in text:
+        if 'a' <= char <= 'z' or 'A' <= char <= 'Z':
+            text_lower += char.lower()
+        else:
+            text_lower += char
+    
+    # 記号や特殊文字を除去（ただし日本語文字は保持）
+    text = re.sub(r'[!"#$%&\'()*+,-./:;<=>?@\[\\\]^_`{|}~]', "", text_lower)
+    
+    # 数字を除去（必要に応じてコメントアウト）
+    # text = re.sub(r"\d+", "", text)
+    
+    # 余分な空白を除去
     text = re.sub(r"\s+", " ", text).strip()
+    
     return text
 
 
 def tokenize_reviews(reviews_df, column="text"):
     """レビューテキストをトークン化します。"""
+    # 日本語テキスト用のより良いトークン化
+    import re
+    
+    # 日本語の単語境界を認識するパターン（簡易版）
+    # 名詞や動詞などの単語を抽出するパターン
+    jp_word_pattern = re.compile(r'[一-龠]+|[ぁ-ん]+|[ァ-ヴー]+|[a-zA-Z]+|[0-9]+')
+    
+    # 一般的な日本語の助詞・助動詞・接続詞（ストップワード）
+    jp_stopwords = set([
+        'の', 'に', 'は', 'を', 'た', 'が', 'で', 'て', 'と', 'し', 'れ', 'さ',
+        'ある', 'いる', 'する', 'には', 'なる', 'から', 'まで', 'として', 'について',
+        'これ', 'それ', 'あれ', 'この', 'その', 'あの', 'ため', 'また', 'しかし',
+        'および', 'ただし', 'ところ', 'ながら', 'および', 'または', 'および', 'ほか',
+        'たり', 'だり', 'なお', 'たち', 'でも', 'もの', 'こと', 'より', 'など',
+        'なに', 'ので', 'みたい', 'これら', 'それら', 'において', 'において',
+    ])
+    
+    # レビューの重要な単語だけを抽出（名詞、形容詞、動詞など）
+    important_words = [
+        'カメラ', '性能', 'バッテリー', '画面', '電池', '持ち', '画質', '充電', 
+        '音質', '処理', '速度', '操作', '使い', '機能', '価格', '値段', '高級', 
+        '安い', '高い', '軽い', '重い', '薄い', '厚い', '美しい', '優れた', 
+        '素晴らしい', '最高', '便利', '不便', '快適', '不快', '問題', 'トラブル',
+        '故障', '修理', '不具合', '満足', '不満', '購入', 'デザイン', '使いやすい', 
+        '使いにくい', '品質', '評価', '高評価', '低評価', '期待', '残念', '驚き'
+    ]
+    
     tokenized_reviews = []
+    all_tokens = []
+    
     for review in reviews_df[column]:
+        # テキストをクリーニング
         clean_text = clean_review_text(review)
-        tokens = clean_text.split()
-        tokens = [token for token in tokens if len(token) > 1]
-        tokenized_reviews.append(tokens)
+        
+        # 日本語の単語を抽出
+        tokens = jp_word_pattern.findall(clean_text)
+        
+        # フィルタリング（ストップワードを除去し、短すぎる単語も除去）
+        filtered_tokens = []
+        for token in tokens:
+            # 2文字以上、かつストップワードでない、または重要語リストにある単語
+            if (len(token) >= 2 and token.lower() not in jp_stopwords) or token in important_words:
+                filtered_tokens.append(token)
+        
+        tokenized_reviews.append(filtered_tokens)
+        all_tokens.extend(filtered_tokens)
+    
+    print(f"抽出された単語の例: {all_tokens[:20]}")
+    print(f"単語の総数: {len(all_tokens)}, ユニーク単語数: {len(set(all_tokens))}")
+    
     return tokenized_reviews
 
 
@@ -396,6 +454,12 @@ def create_word_cloud(tokenized_reviews, title="頻出ワードクラウド"):
         "contour_color": "steelblue",
         "colormap": "viridis",
         "prefer_horizontal": 0.9,
+        "min_font_size": 10,      # 最小フォントサイズ
+        "max_font_size": 150,     # 最大フォントサイズ
+        "random_state": 42,       # 再現性のための乱数シード
+        "scale": 2,               # スケールファクター
+        "relative_scaling": 0.7,  # 頻度の重要度（0-1）
+        "margin": 10,             # 余白
     }
     
     # フォントパスが見つかった場合は設定
