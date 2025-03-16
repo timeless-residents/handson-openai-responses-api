@@ -55,6 +55,9 @@ try:
 except LookupError:
     nltk.download("stopwords")
 
+# 日本語の場合はmecabのインストールが必要かもしれません
+# テキスト処理の部分を簡略化して、NLTKの依存を減らす
+
 
 def setup_environment():
     """環境設定を行い、APIキーを取得します。"""
@@ -95,14 +98,20 @@ def clean_review_text(text):
 
 def tokenize_reviews(reviews_df, column="text"):
     """レビューテキストをトークン化します。"""
-    stop_words_ja = set(stopwords.words("english"))  # 英語のストップワード（日本語用に拡張可能）
-    
+    # 日本語テキスト用の簡易トークン化
     tokenized_reviews = []
+    
     for review in reviews_df[column]:
         clean_text = clean_review_text(review)
-        tokens = word_tokenize(clean_text)
-        # ストップワードを除去
-        tokens = [token for token in tokens if token not in stop_words_ja and len(token) > 1]
+        
+        # 簡易的な分かち書き（スペースで区切る）
+        # 日本語の場合は単純なスペース区切りだけだと不十分かもしれませんが、
+        # MeCabなどのインストールが必要なので、ここでは簡易的に実装
+        tokens = clean_text.split()
+        
+        # 短すぎる単語を除去（ストップワードの代わり）
+        tokens = [token for token in tokens if len(token) > 1]
+        
         tokenized_reviews.append(tokens)
     
     return tokenized_reviews
