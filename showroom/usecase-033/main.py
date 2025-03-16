@@ -317,6 +317,7 @@ def generate_social_media_posts(
     platform: str = "Instagram", count: int = 3, style: str = "general"
 ) -> List[Dict[str, Any]]:
     """特定のソーシャルメディアプラットフォーム向けの投稿を生成します。"""
+    print(f"DEBUG: API Key: {client.api_key[:5]}...")  # APIキーの先頭数文字のみ表示
     
     # スタイルに応じたガイダンスを設定
     style_guidance = {
@@ -410,40 +411,41 @@ def generate_social_media_posts(
             max_output_tokens=4000,
         )
         
+        # レスポンスの詳細をデバッグ出力
+        print(f"DEBUG: Response type: {type(response)}")
+        print(f"DEBUG: Response attributes: {dir(response)}")
+        
         # 結果のパース
         result_text = response.output_text
         
         # 投稿をリスト形式に整形
         posts = []
-        current_post = {"platform": platform, "style": style}
         
-        # 簡易的なパース処理（実際の出力形式によって調整が必要）
-        for line in result_text.split('\n'):
-            if line.strip().startswith("投稿") or line.strip().startswith("===") or line.strip().startswith("---"):
-                if "text" in current_post:  # 投稿データが存在する場合は追加
-                    posts.append(current_post)
-                    current_post = {"platform": platform, "style": style}
-            elif ":" in line and not line.strip().startswith("#"):
-                key, value = line.split(":", 1)
-                key = key.strip().lower()
-                value = value.strip()
-                if key == "メインテキスト" or key == "本文" or key == "テキスト" or key == "キャプション":
-                    current_post["text"] = value
-                elif key == "ハッシュタグ" or key == "タグ":
-                    current_post["hashtags"] = value
-                elif key == "cta" or key == "行動喚起":
-                    current_post["cta"] = value
-                elif key == "画像キャプション" or key == "画像説明":
-                    current_post["image_caption"] = value
-            else:
-                # 特定のキーが見つからない場合は、現在処理中のフィールドに追加
-                for field in ["text", "hashtags", "cta", "image_caption"]:
-                    if field in current_post:
-                        current_post[field] += "\n" + line
+        # "###" で投稿を分割
+        sections = result_text.split("###")
         
-        # 最後の投稿を追加
-        if "text" in current_post:
-            posts.append(current_post)
+        for section in sections[1:]:  # 最初の空のセクションをスキップ
+            current_post = {
+                "platform": platform,
+                "style": style
+            }
+            
+            # セクション内で "**メインテキスト:**", "**ハッシュタグ:**", "**画像のキャプション提案:**" を探す
+            if "**メインテキスト:**" in section:
+                main_text_parts = section.split("**メインテキスト:**")[1].split("**")[0].strip()
+                current_post["text"] = main_text_parts
+                
+            if "**ハッシュタグ:**" in section:
+                hashtags_parts = section.split("**ハッシュタグ:**")[1].split("**")[0].strip()
+                current_post["hashtags"] = hashtags_parts
+                
+            if "**画像のキャプション提案:**" in section:
+                caption_parts = section.split("**画像のキャプション提案:**")[1].split("---")[0].strip()
+                current_post["image_caption"] = caption_parts
+            
+            # 投稿にテキストが含まれている場合のみ追加
+            if "text" in current_post and current_post["text"]:
+                posts.append(current_post)
         
         # 不完全な投稿を除外
         posts = [post for post in posts if "text" in post and post["text"]]
@@ -453,6 +455,8 @@ def generate_social_media_posts(
         
     except Exception as e:
         print(f"ソーシャルメディア投稿の生成中にエラーが発生しました: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return []
 
 
@@ -1182,6 +1186,10 @@ def save_content(content, content_type, output_dir="output"):
 
 def main():
     """メイン関数"""
+    # デバッグモードを有効にする
+    import logging
+    logging.basicConfig(level=logging.DEBUG)
+    
     parser = argparse.ArgumentParser(description="マーケティングコンテンツの自動生成")
     parser.add_argument(
         "--content-type", "-t", type=str, default="social_media",
