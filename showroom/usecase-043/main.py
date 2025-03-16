@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 from openai import OpenAI
 import uuid
 import time
+import datetime
 
 # 環境変数の読み込み
 load_dotenv()
@@ -19,6 +20,13 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 # Flaskアプリの初期化
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
+
+# カスタムフィルターの追加
+@app.template_filter('strftime')
+def _jinja2_filter_strftime(date_str, format_str='%Y-%m-%d'):
+    """日付文字列をフォーマットするフィルター"""
+    today = datetime.datetime.now()
+    return today.strftime(format_str)
 
 # ユーザーセッション情報を管理するディクショナリ
 user_sessions = {}
