@@ -26,7 +26,20 @@ disable=
     pointless-string-statement,
     duplicate-code,
     unspecified-encoding,
-    expression-not-assigned
+    expression-not-assigned,
+    w3101,
+    w0612,
+    w0613,
+    w0621,
+    w0622,
+    w0702,
+    w1203,
+    w1309,
+    c0206,
+    c0411,
+    c0413,
+    c0415,
+    missing-timeout
 
 [FORMAT]
 # 最大行長

@@ -1,3 +1,6 @@
+output/
+instance/
+
 # Python
 __pycache__/
 *.py[cod]

@@ -481,56 +481,64 @@ def get_all_reviews():
 def get_product_reviews(product_id=None):
     """指定された製品IDのレビューを取得します。製品IDが指定されていない場合は、全ての製品のレビューを返します。"""
     all_reviews = get_all_reviews()
-    
+
     if product_id is None:
         return all_reviews
-    
+
     return [review for review in all_reviews if review["product_id"] == product_id]
 
 
 def get_reviews_by_rating(min_rating=None, max_rating=None):
     """評価点の範囲でレビューをフィルタリングします。"""
     all_reviews = get_all_reviews()
-    
+
     if min_rating is None and max_rating is None:
         return all_reviews
-    
+
     filtered_reviews = all_reviews
-    
+
     if min_rating is not None:
-        filtered_reviews = [review for review in filtered_reviews if review["rating"] >= min_rating]
-    
+        filtered_reviews = [
+            review for review in filtered_reviews if review["rating"] >= min_rating
+        ]
+
     if max_rating is not None:
-        filtered_reviews = [review for review in filtered_reviews if review["rating"] <= max_rating]
-    
+        filtered_reviews = [
+            review for review in filtered_reviews if review["rating"] <= max_rating
+        ]
+
     return filtered_reviews
 
 
 def get_reviews_by_date_range(start_date=None, end_date=None):
     """日付範囲でレビューをフィルタリングします。"""
     all_reviews = get_all_reviews()
-    
+
     if start_date is None and end_date is None:
         return all_reviews
-    
+
     filtered_reviews = all_reviews
-    
+
     if start_date is not None:
-        filtered_reviews = [review for review in filtered_reviews if review["date"] >= start_date]
-    
+        filtered_reviews = [
+            review for review in filtered_reviews if review["date"] >= start_date
+        ]
+
     if end_date is not None:
-        filtered_reviews = [review for review in filtered_reviews if review["date"] <= end_date]
-    
+        filtered_reviews = [
+            review for review in filtered_reviews if review["date"] <= end_date
+        ]
+
     return filtered_reviews
 
 
 def search_reviews(query):
     """レビューテキスト内でキーワード検索を行います。"""
     all_reviews = get_all_reviews()
-    
+
     if not query:
         return all_reviews
-    
+
     query = query.lower()
     return [
         review

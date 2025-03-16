@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>メディア内容のモデレーションと分類</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #f5f5f5;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+            border-left: 5px solid #0066cc;
+        }
+        h1 {
+            color: #0066cc;
+            margin-top: 0;
+        }
+        h2 {
+            color: #0066cc;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+            margin-top: 30px;
+        }
+        .content-policy {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .category {
+            font-weight: bold;
+        }
+        .severity {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 0.85em;
+            margin-left: 10px;
+        }
+        .severity.low {
+            background-color: #fffacd;
+            color: #8b6914;
+        }
+        .severity.medium {
+            background-color: #ffd700;
+            color: #8b6914;
+        }
+        .severity.high {
+            background-color: #ff6347;
+            color: white;
+        }
+        .sample {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        .sample-text {
+            font-style: italic;
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 3px;
+        }
+        .analysis {
+            margin-top: 10px;
+        }
+        .footer {
+            margin-top: 50px;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+            font-size: 0.9em;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>メディア内容のモデレーションと分類</h1>
+        <p>OpenAI Responses APIを使用してテキストコンテンツの安全性チェックとカテゴリ分類を行うデモです。</p>
+    </div>
+
+    <h2>コンテンツポリシー</h2>
+    <div class="content-policy">
+        <h3>禁止または制限されているコンテンツカテゴリ</h3>
+        <ol>
+            <li><span class="category">有害コンテンツ:</span> 暴力、自傷行為、危険行為の促進</li>
+            <li><span class="category">ヘイトスピーチ:</span> 差別、人種差別、性差別など</li>
+            <li><span class="category">性的コンテンツ:</span> 露骨な性的表現、未成年者に関する不適切なコンテンツ</li>
+            <li><span class="category">詐欺的コンテンツ:</span> 虚偽情報、詐欺、フィッシング</li>
+            <li><span class="category">プライバシー侵害:</span> 個人情報の無断公開</li>
+            <li><span class="category">著作権侵害:</span> 無許可の著作物使用</li>
+            <li><span class="category">スパム:</span> 大量の無関係コンテンツ、広告</li>
+        </ol>
+
+        <h3>重大度レベル</h3>
+        <ul>
+            <li><span class="severity low">低</span> 軽微な違反、警告対象</li>
+            <li><span class="severity medium">中</span> 明確な違反、コンテンツ削除対象</li>
+            <li><span class="severity high">高</span> 深刻な違反、アカウント停止対象</li>
+        </ul>
+    </div>
+
+    <h2>サンプルモデレーション例</h2>
+    
+    <div class="sample">
+        <div class="sample-text">
+            "今日は素晴らしい一日でした。公園を散歩して、友人と食事を楽しみました。"
+        </div>
+        <div class="analysis">
+            <p><strong>カテゴリ:</strong> 安全</p>
+            <p><strong>検出カテゴリ:</strong> なし</p>
+            <p><strong>重大度:</strong> なし</p>
+            <p><strong>説明:</strong> このコンテンツは日常的な活動について述べており、ポリシー違反はありません。公園での散歩や友人との食事に関する無害な内容です。</p>
+            <p><strong>推奨対応:</strong> 承認して公開可能です。</p>
+        </div>
+    </div>
+
+    <div class="sample">
+        <div class="sample-text">
+            "@username の住所は123 Main St.で、電話番号は555-1234です。みんなでいたずら電話しましょう。"
+        </div>
+        <div class="analysis">
+            <p><strong>カテゴリ:</strong> 違反</p>
+            <p><strong>検出カテゴリ:</strong> プライバシー侵害, 有害コンテンツ</p>
+            <p><strong>重大度:</strong> 高</p>
+            <p><strong>説明:</strong> このコンテンツは個人情報（住所と電話番号）を無断で公開し、さらにいたずら電話という嫌がらせ行為を促しています。これはプライバシー侵害と有害行為の促進に該当します。</p>
+            <p><strong>推奨対応:</strong> コンテンツを直ちに削除し、投稿者に警告または一時的なアカウント制限を検討してください。また、被害者に対する通知と保護措置も検討すべきです。</p>
+        </div>
+    </div>
+
+    <h2>実装方法</h2>
+    <p>このモデレーションシステムは以下の方法で実装されています:</p>
+    <ol>
+        <li>OpenAI Responses APIを使用して、GPT-4モデルにコンテンツ分析を依頼</li>
+        <li>JSONスキーマを使用して、構造化された一貫性のある分析結果を生成</li>
+        <li>コンテンツポリシーをシステムプロンプトに含めることで、特定のガイドラインに沿った分析を実現</li>
+        <li>分析結果に基づいて、適切なアクションやフィードバックを提供</li>
+    </ol>
+
+    <div class="footer">
+        <p>OpenAI Responses API ハンズオン - usecase-038: メディア内容のモデレーションと分類</p>
+        <p>このデモは教育目的で作成されています。実際のモデレーションシステムでは、より複雑な分析やヒューマンレビューが必要な場合があります。</p>
+    </div>
+</body>
+</html>

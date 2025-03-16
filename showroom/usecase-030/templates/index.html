@@ -1,0 +1,197 @@
+
+    <!DOCTYPE html>
+    <html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>カスタマーサポートチャット</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                max-width: 800px;
+                margin: 0 auto;
+                padding: 20px;
+            }
+            .chat-container {
+                border: 1px solid #ddd;
+                border-radius: 10px;
+                padding: 20px;
+                height: 500px;
+                overflow-y: auto;
+                margin-bottom: 20px;
+                background-color: #f9f9f9;
+            }
+            .message {
+                margin-bottom: 15px;
+                padding: 10px;
+                border-radius: 8px;
+                max-width: 80%;
+            }
+            .user-message {
+                background-color: #e3f2fd;
+                margin-left: auto;
+                text-align: right;
+            }
+            .bot-message {
+                background-color: #f0f0f0;
+                margin-right: auto;
+            }
+            .input-container {
+                display: flex;
+                gap: 10px;
+            }
+            #user-input {
+                flex-grow: 1;
+                padding: 10px;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+            }
+            button {
+                padding: 10px 20px;
+                background-color: #4caf50;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+            }
+            button:hover {
+                background-color: #45a049;
+            }
+            .system-message {
+                text-align: center;
+                font-style: italic;
+                color: #666;
+                margin: 10px 0;
+            }
+            .loading {
+                color: #999;
+                font-style: italic;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>カスタマーサポートチャット</h1>
+        <p>商品情報、注文状況、返品ポリシーなどについてお気軽にお問い合わせください。</p>
+        
+        <div class="chat-container" id="chat-container">
+            <div class="message bot-message">
+                こんにちは！家電製品オンラインショップのカスタマーサポートです。どのようなご質問がありますか？
+            </div>
+        </div>
+        
+        <div class="input-container">
+            <input type="text" id="user-input" placeholder="メッセージを入力してください...">
+            <button id="send-button">送信</button>
+        </div>
+        
+        <script>
+            const chatContainer = document.getElementById('chat-container');
+            const userInput = document.getElementById('user-input');
+            const sendButton = document.getElementById('send-button');
+            
+            // 会話履歴を保存
+            let conversationHistory = [];
+            
+            function addMessage(message, isUser = false) {
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('message');
+                messageDiv.classList.add(isUser ? 'user-message' : 'bot-message');
+                messageDiv.textContent = message;
+                chatContainer.appendChild(messageDiv);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                
+                // 会話履歴に追加
+                conversationHistory.push({
+                    role: isUser ? 'user' : 'assistant',
+                    content: message
+                });
+            }
+            
+            function addSystemMessage(message) {
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('system-message');
+                messageDiv.textContent = message;
+                chatContainer.appendChild(messageDiv);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+            
+            function addLoadingIndicator() {
+                const loadingDiv = document.createElement('div');
+                loadingDiv.classList.add('message', 'bot-message', 'loading');
+                loadingDiv.textContent = '入力中...';
+                loadingDiv.id = 'loading-indicator';
+                chatContainer.appendChild(loadingDiv);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                return loadingDiv;
+            }
+            
+            function removeLoadingIndicator(indicator) {
+                if (indicator && indicator.parentNode) {
+                    indicator.parentNode.removeChild(indicator);
+                }
+            }
+            
+            async function sendMessage() {
+                const message = userInput.value.trim();
+                if (!message) return;
+                
+                // ユーザーメッセージを表示
+                addMessage(message, true);
+                userInput.value = '';
+                
+                // ローディングインジケータを表示
+                const loadingIndicator = addLoadingIndicator();
+                
+                try {
+                    // APIリクエスト
+                    const response = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            message: message,
+                            history: conversationHistory.slice(0, -1) // 最後のユーザーメッセージは除外
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    // ローディングインジケータを削除
+                    removeLoadingIndicator(loadingIndicator);
+                    
+                    if (data.status === 'success') {
+                        // ボットの応答を表示
+                        addMessage(data.message);
+                        
+                        // response_idがある場合は会話履歴に追加
+                        if (data.response_id) {
+                            conversationHistory[conversationHistory.length - 1].response_id = data.response_id;
+                        }
+                    } else {
+                        // エラーメッセージを表示
+                        addSystemMessage('エラーが発生しました: ' + data.message);
+                    }
+                } catch (error) {
+                    // ローディングインジケータを削除
+                    removeLoadingIndicator(loadingIndicator);
+                    
+                    // エラーメッセージを表示
+                    addSystemMessage('通信エラーが発生しました。再度お試しください。');
+                    console.error('Error:', error);
+                }
+            }
+            
+            // 送信ボタンのクリックイベント
+            sendButton.addEventListener('click', sendMessage);
+            
+            // Enterキーの押下イベント
+            userInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+        </script>
+    </body>
+    </html>
+    

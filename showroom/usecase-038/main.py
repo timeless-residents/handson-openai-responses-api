@@ -55,8 +55,9 @@ SAMPLE_TEXTS = [
     "この製品は最低です。二度と買いません。販売員も無礼でした。",
     "@username の住所は123 Main St.で、電話番号は555-1234です。みんなでいたずら電話しましょう。",
     "彼らの民族は全て同じです。この国から出て行くべきです。",
-    "安い値段で高級腕時計を販売中！今だけ90%オフ。詳細はこのリンクをクリック: bit.ly/2ZjGd"
+    "安い値段で高級腕時計を販売中！今だけ90%オフ。詳細はこのリンクをクリック: bit.ly/2ZjGd",
 ]
+
 
 def create_moderation_request(content: str) -> Dict[str, Any]:
     """モデレーションリクエストを作成"""
@@ -78,14 +79,15 @@ def create_moderation_request(content: str) -> Dict[str, Any]:
   "severity": "低" または "中" または "高" または "なし",
   "explanation": "説明文",
   "recommendation": "推奨対応"
-}}"""
+}}""",
             },
             {
                 "role": "user",
-                "content": f"以下のテキストを分析し、コンテンツポリシーに照らして評価してください:\n\n{content}"
-            }
-        ]
+                "content": f"以下のテキストを分析し、コンテンツポリシーに照らして評価してください:\n\n{content}",
+            },
+        ],
     }
+
 
 def analyze_content(content: str) -> Dict[str, Any]:
     """コンテンツを分析してモデレーション結果を返す"""
@@ -93,11 +95,11 @@ def analyze_content(content: str) -> Dict[str, Any]:
         # OpenAI APIにリクエスト送信
         request = create_moderation_request(content)
         response = openai.chat.completions.create(**request)
-        
+
         # JSONレスポンスを解析
         result = json.loads(response.choices[0].message.content)
         return result
-    
+
     except Exception as e:
         console.print(f"[bold red]エラーが発生しました: {e}[/bold red]")
         return {
@@ -105,8 +107,9 @@ def analyze_content(content: str) -> Dict[str, Any]:
             "categories": ["エラー"],
             "severity": "なし",
             "explanation": f"分析中にエラーが発生しました: {str(e)}",
-            "recommendation": "システム管理者に連絡してください。"
+            "recommendation": "システム管理者に連絡してください。",
         }
+
 
 def display_analysis_result(content: str, result: Dict[str, Any]) -> None:
     """分析結果を表示"""
@@ -115,67 +118,76 @@ def display_analysis_result(content: str, result: Dict[str, Any]) -> None:
         "安全": "green",
         "要注意": "yellow",
         "違反": "red",
-        "エラー": "red"
+        "エラー": "red",
     }
-    
+
     color = category_colors.get(result["category"], "white")
-    
+
     # 結果パネルの作成
-    console.print(Panel(
-        f"[bold]{content}[/bold]\n\n"
-        f"[bold]カテゴリ:[/bold] [{color}]{result['category']}[/{color}]\n"
-        f"[bold]検出カテゴリ:[/bold] {', '.join(result['categories'])}\n"
-        f"[bold]重大度:[/bold] {result['severity']}\n\n"
-        f"[bold]説明:[/bold]\n{result['explanation']}\n\n"
-        f"[bold]推奨対応:[/bold]\n{result['recommendation']}",
-        title=f"コンテンツ分析結果",
-        border_style=color
-    ))
+    console.print(
+        Panel(
+            f"[bold]{content}[/bold]\n\n"
+            f"[bold]カテゴリ:[/bold] [{color}]{result['category']}[/{color}]\n"
+            f"[bold]検出カテゴリ:[/bold] {', '.join(result['categories'])}\n"
+            f"[bold]重大度:[/bold] {result['severity']}\n\n"
+            f"[bold]説明:[/bold]\n{result['explanation']}\n\n"
+            f"[bold]推奨対応:[/bold]\n{result['recommendation']}",
+            title=f"コンテンツ分析結果",
+            border_style=color,
+        )
+    )
+
 
 def analyze_custom_content() -> None:
     """ユーザー入力のコンテンツを分析"""
-    console.print("\n[bold]分析したいテキストを入力してください (終了するには 'exit' と入力):[/bold]")
-    
+    console.print(
+        "\n[bold]分析したいテキストを入力してください (終了するには 'exit' と入力):[/bold]"
+    )
+
     while True:
         content = console.input("\n>> ")
-        
-        if content.lower() == 'exit':
+
+        if content.lower() == "exit":
             break
-            
+
         with console.status("[bold green]コンテンツを分析中...[/bold green]"):
             result = analyze_content(content)
-        
+
         display_analysis_result(content, result)
+
 
 def main() -> None:
     """メイン関数"""
-    console.print(Panel(
-        "[bold]OpenAI Responses API - メディア内容のモデレーションと分類[/bold]\n\n"
-        "このサンプルは、OpenAIのResponses APIを使用してテキストコンテンツの\n"
-        "モデレーションと分類を行う方法を示しています。\n",
-        title="usecase-038",
-        border_style="blue"
-    ))
-    
+    console.print(
+        Panel(
+            "[bold]OpenAI Responses API - メディア内容のモデレーションと分類[/bold]\n\n"
+            "このサンプルは、OpenAIのResponses APIを使用してテキストコンテンツの\n"
+            "モデレーションと分類を行う方法を示しています。\n",
+            title="usecase-038",
+            border_style="blue",
+        )
+    )
+
     # コンテンツポリシーの表示
     console.print(Markdown(CONTENT_POLICY))
-    
+
     # サンプルテキストの分析
     console.print("\n[bold]サンプルテキストの分析:[/bold]\n")
-    
+
     for i, text in enumerate(SAMPLE_TEXTS, 1):
         console.print(f"\n[bold]サンプル {i}:[/bold]")
-        
+
         with console.status(f"[bold green]サンプル {i} を分析中...[/bold green]"):
             result = analyze_content(text)
             time.sleep(0.5)  # UIの見栄えのための短い遅延
-        
+
         display_analysis_result(text, result)
-    
+
     # カスタムコンテンツの分析
     analyze_custom_content()
-    
+
     console.print("\n[bold blue]分析を終了します。ありがとうございました。[/bold blue]")
+
 
 if __name__ == "__main__":
     main()

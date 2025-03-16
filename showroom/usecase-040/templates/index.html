@@ -1,0 +1,264 @@
+
+    <!DOCTYPE html>
+    <html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>市民向け行政サービス案内</title>
+        <style>
+            body {
+                font-family: 'Helvetica Neue', Arial, sans-serif;
+                max-width: 800px;
+                margin: 0 auto;
+                padding: 20px;
+                background-color: #f5f7fa;
+                color: #333;
+            }
+            header {
+                text-align: center;
+                margin-bottom: 20px;
+                padding: 10px;
+                background-color: #0056b3;
+                color: white;
+                border-radius: 8px;
+            }
+            .chat-container {
+                border: 1px solid #ddd;
+                border-radius: 10px;
+                padding: 20px;
+                height: 500px;
+                overflow-y: auto;
+                margin-bottom: 20px;
+                background-color: white;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            }
+            .message {
+                margin-bottom: 15px;
+                padding: 10px 15px;
+                border-radius: 18px;
+                max-width: 80%;
+                line-height: 1.5;
+            }
+            .user-message {
+                background-color: #e3f2fd;
+                margin-left: auto;
+                text-align: right;
+                color: #0056b3;
+                border-bottom-right-radius: 5px;
+            }
+            .bot-message {
+                background-color: #f0f4f8;
+                margin-right: auto;
+                border-bottom-left-radius: 5px;
+            }
+            .input-container {
+                display: flex;
+                gap: 10px;
+            }
+            #user-input {
+                flex-grow: 1;
+                padding: 12px;
+                border: 1px solid #ddd;
+                border-radius: 24px;
+                font-size: 16px;
+            }
+            button {
+                padding: 12px 20px;
+                background-color: #0056b3;
+                color: white;
+                border: none;
+                border-radius: 24px;
+                cursor: pointer;
+                font-weight: bold;
+                transition: background-color 0.3s;
+            }
+            button:hover {
+                background-color: #003d82;
+            }
+            .system-message {
+                text-align: center;
+                font-style: italic;
+                color: #666;
+                margin: 10px 0;
+            }
+            .loading {
+                color: #999;
+                font-style: italic;
+            }
+            footer {
+                text-align: center;
+                margin-top: 20px;
+                color: #666;
+                font-size: 0.8em;
+            }
+            .quick-links {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+                margin: 20px 0;
+            }
+            .quick-link {
+                background-color: #e3f2fd;
+                border: 1px solid #0056b3;
+                color: #0056b3;
+                padding: 8px 15px;
+                border-radius: 20px;
+                cursor: pointer;
+                font-size: 14px;
+                transition: all 0.3s;
+            }
+            .quick-link:hover {
+                background-color: #0056b3;
+                color: white;
+            }
+        </style>
+    </head>
+    <body>
+        <header>
+            <h1>市民向け行政サービス案内</h1>
+            <p>行政手続き、施設情報、イベント情報などについてお気軽にお問い合わせください</p>
+        </header>
+        
+        <div class="quick-links">
+            <div class="quick-link" onclick="askQuestion('住民票の取得方法について教えてください')">住民票について</div>
+            <div class="quick-link" onclick="askQuestion('ゴミの分別方法について知りたいです')">ゴミの分別</div>
+            <div class="quick-link" onclick="askQuestion('市内の図書館はどこにありますか？')">図書館情報</div>
+            <div class="quick-link" onclick="askQuestion('今週末のイベントはありますか？')">イベント情報</div>
+            <div class="quick-link" onclick="askQuestion('市役所の開庁時間を教えてください')">市役所情報</div>
+        </div>
+        
+        <div class="chat-container" id="chat-container">
+            <div class="message bot-message">
+                こんにちは！市民向け行政サービス案内AIアシスタントです。行政手続き、施設情報、イベント情報などについてお気軽にお問い合わせください。
+            </div>
+        </div>
+        
+        <div class="input-container">
+            <input type="text" id="user-input" placeholder="質問を入力してください...">
+            <button id="send-button">送信</button>
+        </div>
+        
+        <footer>
+            <p>© 2025 市民向け行政サービス案内 - このサービスはAIを活用して情報提供を行っています。</p>
+            <p>緊急時は各担当窓口に直接お問い合わせください。</p>
+        </footer>
+        
+        <script>
+            const chatContainer = document.getElementById('chat-container');
+            const userInput = document.getElementById('user-input');
+            const sendButton = document.getElementById('send-button');
+            
+            // 会話履歴を保存
+            let conversationHistory = [];
+            
+            function addMessage(message, isUser = false) {
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('message');
+                messageDiv.classList.add(isUser ? 'user-message' : 'bot-message');
+                
+                // HTMLタグを適切に処理するためinnerHTMLを使用
+                messageDiv.innerHTML = isUser ? message : message;
+                
+                chatContainer.appendChild(messageDiv);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                
+                // 会話履歴に追加
+                conversationHistory.push({
+                    role: isUser ? 'user' : 'assistant',
+                    content: message
+                });
+            }
+            
+            function addSystemMessage(message) {
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('system-message');
+                messageDiv.textContent = message;
+                chatContainer.appendChild(messageDiv);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+            
+            function addLoadingIndicator() {
+                const loadingDiv = document.createElement('div');
+                loadingDiv.classList.add('message', 'bot-message', 'loading');
+                loadingDiv.textContent = '入力中...';
+                loadingDiv.id = 'loading-indicator';
+                chatContainer.appendChild(loadingDiv);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                return loadingDiv;
+            }
+            
+            function removeLoadingIndicator(indicator) {
+                if (indicator && indicator.parentNode) {
+                    indicator.parentNode.removeChild(indicator);
+                }
+            }
+            
+            function askQuestion(question) {
+                userInput.value = question;
+                sendMessage();
+            }
+            
+            async function sendMessage() {
+                const message = userInput.value.trim();
+                if (!message) return;
+                
+                // ユーザーメッセージを表示
+                addMessage(message, true);
+                userInput.value = '';
+                
+                // ローディングインジケータを表示
+                const loadingIndicator = addLoadingIndicator();
+                
+                try {
+                    // APIリクエスト
+                    const response = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            message: message,
+                            history: conversationHistory.slice(0, -1) // 最後のユーザーメッセージは除外
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    // ローディングインジケータを削除
+                    removeLoadingIndicator(loadingIndicator);
+                    
+                    if (data.status === 'success') {
+                        // ボットの応答を表示
+                        addMessage(data.message);
+                        
+                        // response_idがある場合は会話履歴に追加
+                        if (data.response_id) {
+                            conversationHistory[conversationHistory.length - 1].response_id = data.response_id;
+                        }
+                    } else {
+                        // エラーメッセージを表示
+                        addSystemMessage('エラーが発生しました: ' + data.message);
+                    }
+                } catch (error) {
+                    // ローディングインジケータを削除
+                    removeLoadingIndicator(loadingIndicator);
+                    
+                    // エラーメッセージを表示
+                    addSystemMessage('通信エラーが発生しました。再度お試しください。');
+                    console.error('Error:', error);
+                }
+            }
+            
+            // 送信ボタンのクリックイベント
+            sendButton.addEventListener('click', sendMessage);
+            
+            // Enterキーの押下イベント
+            userInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+        </script>
+    </body>
+    </html>
+    

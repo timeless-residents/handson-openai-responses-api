@@ -21,6 +21,7 @@ if sys.version_info >= (3, 7):
 
 class ToolChoiceMode(Enum):
     """ツール選択モードの列挙型"""
+
     AUTO = "auto"
     REQUIRED = "required"
     NONE = "none"
@@ -74,10 +75,18 @@ def get_attractions(city):
 def get_hotels(city):
     """指定された都市のホテル情報を取得します。"""
     data = {
-        "東京": ["パークハイアット東京", "ホテルメトロポリタン", "ザ・リッツカールトン東京"],
+        "東京": [
+            "パークハイアット東京",
+            "ホテルメトロポリタン",
+            "ザ・リッツカールトン東京",
+        ],
         "大阪": ["コンラッド大阪", "スイスホテル南海大阪", "ホテルニューオータニ大阪"],
         "札幌": ["JRタワーホテル日航札幌", "札幌グランドホテル", "札幌パークホテル"],
-        "福岡": ["グランド・ハイアット・福岡", "ANAクラウンプラザホテル福岡", "ホテルオークラ福岡"],
+        "福岡": [
+            "グランド・ハイアット・福岡",
+            "ANAクラウンプラザホテル福岡",
+            "ホテルオークラ福岡",
+        ],
     }
     if city in data:
         return {"city": city, "hotels": data[city]}
@@ -90,8 +99,18 @@ def get_restaurants(city):
     data = {
         "東京": ["銀座 寿司清", "叙々苑", "bills", "一蘭 新宿中央東口店"],
         "大阪": ["蟹道楽", "たこ八", "きつねうどん なか卯", "松阪牛 よし田"],
-        "札幌": ["回転寿司 根室花まる", "スープカレー 心", "ジンギスカン だるま", "みよしの"],
-        "福岡": ["博多一幸舎", "博多もつ鍋 やま中", "博多魚がし 海の路", "ひょうたん寿司"],
+        "札幌": [
+            "回転寿司 根室花まる",
+            "スープカレー 心",
+            "ジンギスカン だるま",
+            "みよしの",
+        ],
+        "福岡": [
+            "博多一幸舎",
+            "博多もつ鍋 やま中",
+            "博多魚がし 海の路",
+            "ひょうたん寿司",
+        ],
     }
     if city in data:
         return {"city": city, "restaurants": data[city]}
@@ -158,14 +177,14 @@ def setup_tools():
 def process_tool_call(client, user_input, tools, tool_choice_mode, specific_tool=None):
     """
     ツール呼び出しを実行し、ツールの結果を集約して最終回答を生成します。
-    
+
     Args:
         client (openai.Client): OpenAIクライアントインスタンス
         user_input (str): ユーザー入力
         tools (list): ツール定義のリスト
         tool_choice_mode (ToolChoiceMode): ツール選択モード
         specific_tool (str, optional): 特定のツール名（tool_choice_mode=SPECIFICの場合に使用）
-    
+
     Returns:
         str: 最終的な応答テキスト
     """
@@ -195,7 +214,7 @@ def process_tool_call(client, user_input, tools, tool_choice_mode, specific_tool
         # 本サンプルではparallel_tool_calls=Falseを明示的に指定（デフォルト値）
         parallel_tool_calls=False,
     )
-    
+
     print("\n初回応答:", response.output_text)
 
     # ツール呼び出しがなければ初回応答を返す
@@ -210,7 +229,7 @@ def process_tool_call(client, user_input, tools, tool_choice_mode, specific_tool
         print(f"- 呼び出されたツール: {fc.name}")
         args = json.loads(fc.arguments)
         print(f"  引数: {args}")
-        
+
         # ツール関数を実行
         if fc.name == "get_weather":
             result = get_weather(**args)
@@ -222,9 +241,9 @@ def process_tool_call(client, user_input, tools, tool_choice_mode, specific_tool
             result = get_restaurants(**args)
         else:
             result = {"error": "未実装の関数"}
-        
+
         print(f"  結果: {result}")
-        
+
         # ツール呼び出し結果を追加
         outputs.append(
             {
@@ -241,7 +260,7 @@ def process_tool_call(client, user_input, tools, tool_choice_mode, specific_tool
         input=outputs,
         previous_response_id=response.id,
     )
-    
+
     print("\n最終応答:", final_response.output_text)
     return final_response.output_text
 
@@ -251,7 +270,7 @@ def main():
     api_key = setup_environment()
     client = openai.Client(api_key=api_key)
     tools = setup_tools()
-    
+
     # ツール選択モードの説明
     print("ツール選択モード（tool_choice）のサンプル\n")
     print("以下のモードから選択してください:")
@@ -259,10 +278,10 @@ def main():
     print("2: required - ツールの使用を必須にする")
     print("3: none - ツールを使用せず")
     print("4: specific - 特定のツールのみ使用\n")
-    
+
     # モード選択
     mode_choice = input("モードを選択してください (1-4): ").strip()
-    
+
     # 選択されたモードに基づいてツール選択モードを設定
     if mode_choice == "1":
         tool_choice_mode = ToolChoiceMode.AUTO
@@ -280,7 +299,7 @@ def main():
         print("2: get_attractions - 観光スポット")
         print("3: get_hotels - ホテル情報")
         print("4: get_restaurants - 飲食店情報")
-        
+
         tool_number = input("使用するツールを選択してください (1-4): ").strip()
         if tool_number == "1":
             specific_tool = "get_weather"
@@ -297,15 +316,15 @@ def main():
         print("無効な選択です。autoモードを使用します。")
         tool_choice_mode = ToolChoiceMode.AUTO
         specific_tool = None
-    
+
     # ユーザー入力
     city = input("\n都市名を入力してください (例: 東京, 大阪, 札幌, 福岡): ")
     query_type = input("質問内容を入力してください (例: 天気, 観光, ホテル, 飲食店): ")
     user_input = f"{city}の{query_type}について教えてください。"
-    
+
     # ツール呼び出し処理
-    result = process_tool_call(client, user_input, tools, tool_choice_mode, specific_tool)
-    
+    process_tool_call(client, user_input, tools, tool_choice_mode, specific_tool)
+
     print("\n処理完了")
 
 
