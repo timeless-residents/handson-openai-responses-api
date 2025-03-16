@@ -131,6 +131,10 @@ def create_visualization_charts(df: pd.DataFrame) -> List[Dict[str, str]]:
     charts = []
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     
+    # 日本語フォントの設定
+    plt.rcParams['font.family'] = 'sans-serif'
+    plt.rcParams['font.sans-serif'] = ['Hiragino Sans', 'Yu Gothic', 'Meiryo', 'IPAexGothic', 'VL PGothic', 'Noto Sans CJK JP']
+    
     # 数値列の検出
     numeric_columns = df.select_dtypes(include=[np.number]).columns.tolist()
     
@@ -150,12 +154,14 @@ def create_visualization_charts(df: pd.DataFrame) -> List[Dict[str, str]]:
             plt.tight_layout()
             
             chart_path = CHARTS_DIR / f"category_dist_{i}_{timestamp}.png"
-            plt.savefig(chart_path)
+            plt.savefig(chart_path, dpi=100, bbox_inches='tight')
             plt.close()
             
+            # パスは相対パスでHTMLから参照できるように調整
+            relative_path = f"./charts/category_dist_{i}_{timestamp}.png"
             charts.append({
                 "title": f"{col}の分布",
-                "path": str(chart_path)
+                "path": relative_path
             })
     
     # 2. 数値データの箱ひげ図
@@ -166,12 +172,13 @@ def create_visualization_charts(df: pd.DataFrame) -> List[Dict[str, str]]:
         plt.tight_layout()
         
         chart_path = CHARTS_DIR / f"boxplot_{timestamp}.png"
-        plt.savefig(chart_path)
+        plt.savefig(chart_path, dpi=100, bbox_inches='tight')
         plt.close()
         
+        relative_path = f"./charts/boxplot_{timestamp}.png"
         charts.append({
             "title": "数値データの分布（箱ひげ図）",
-            "path": str(chart_path)
+            "path": relative_path
         })
     
     # 3. 数値列間の相関ヒートマップ
@@ -193,12 +200,13 @@ def create_visualization_charts(df: pd.DataFrame) -> List[Dict[str, str]]:
         plt.tight_layout()
         
         chart_path = CHARTS_DIR / f"correlation_{timestamp}.png"
-        plt.savefig(chart_path)
+        plt.savefig(chart_path, dpi=100, bbox_inches='tight')
         plt.close()
         
+        relative_path = f"./charts/correlation_{timestamp}.png"
         charts.append({
             "title": "変数間の相関ヒートマップ",
-            "path": str(chart_path)
+            "path": relative_path
         })
     
     # 4. 時系列データがあれば時系列プロット
@@ -206,7 +214,7 @@ def create_visualization_charts(df: pd.DataFrame) -> List[Dict[str, str]]:
     for col in df.columns:
         try:
             if df[col].dtype == 'object':
-                pd.to_datetime(df[col])
+                pd.to_datetime(df[col], format='%Y-%m-%d')
                 date_columns.append(col)
         except:
             continue
@@ -232,12 +240,13 @@ def create_visualization_charts(df: pd.DataFrame) -> List[Dict[str, str]]:
         plt.tight_layout()
         
         chart_path = CHARTS_DIR / f"time_series_{timestamp}.png"
-        plt.savefig(chart_path)
+        plt.savefig(chart_path, dpi=100, bbox_inches='tight')
         plt.close()
         
+        relative_path = f"./charts/time_series_{timestamp}.png"
         charts.append({
             "title": f"{numeric_col}の時系列変化",
-            "path": str(chart_path)
+            "path": relative_path
         })
         
     return charts
