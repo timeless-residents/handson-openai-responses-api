@@ -78,7 +78,7 @@ python showroom/usecase-000/main.py
 - **usecase-021**: [ファイル検索ツールの活用](showroom/usecase-021/README.md) - ローカルファイルシステム内のファイル検索と分析を行う方法
 - **usecase-022**: [カスタム関数呼び出し（Function Calling）](showroom/usecase-022/README.md) - AIモデルに外部機能を提供し複雑なタスクを実行する方法
 - **usecase-023**: [並列ツール呼び出し（parallel_tool_calls）](showroom/usecase-023/README.md) - 複数のツールを同時に呼び出して効率的にデータを取得する方法
-- **usecase-024**: ツール選択の制御（tool_choice）
+- **usecase-024**: [ツール選択の制御（tool_choice）](showroom/usecase-024/README.md) - AIモデルのツール使用を明示的に制御する方法
 
 ### 応用シナリオ（民間利用）
 
