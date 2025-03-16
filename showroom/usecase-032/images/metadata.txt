@@ -1,0 +1,52 @@
+# 不動産画像サンプルメタデータ
+
+## house_exterior_1.jpg
+タイプ: exterior
+説明: モダンな平屋の外観
+ソース: https://images.unsplash.com/photo-1580587771525-78b9dba3b914
+
+## house_exterior_2.jpg
+タイプ: exterior
+説明: プールのある豪華な住宅
+ソース: https://images.unsplash.com/photo-1564013799919-ab600027ffc6
+
+## apartment_exterior.jpg
+タイプ: exterior
+説明: モダンなアパートメント外観
+ソース: https://images.unsplash.com/photo-1576941089067-2de3c901e126
+
+## living_room_1.jpg
+タイプ: living_room
+説明: 明るいモダンなリビングルーム
+ソース: https://images.unsplash.com/photo-1560448204-e02f11c3d0e2
+
+## living_room_2.jpg
+タイプ: living_room
+説明: 広々とした高級リビングルーム
+ソース: https://images.unsplash.com/photo-1600210492493-0946911123ea
+
+## kitchen_1.jpg
+タイプ: kitchen
+説明: 明るいモダンなキッチン
+ソース: https://images.unsplash.com/photo-1556911220-bff31c812dba
+
+## kitchen_2.jpg
+タイプ: kitchen
+説明: アイランドキッチン
+ソース: https://images.unsplash.com/photo-1556909212-d5b604d0c90d
+
+## bathroom_1.jpg
+タイプ: bathroom
+説明: モダンなバスルーム
+ソース: https://images.unsplash.com/photo-1552321554-5fefe8c9ef14
+
+## bedroom_1.jpg
+タイプ: bedroom
+説明: 広々としたベッドルーム
+ソース: https://images.unsplash.com/photo-1616594039964-ae9021a400a0
+
+## bedroom_2.jpg
+タイプ: bedroom
+説明: 明るいベッドルーム
+ソース: https://images.unsplash.com/photo-1540518614846-7eded433c457
+
