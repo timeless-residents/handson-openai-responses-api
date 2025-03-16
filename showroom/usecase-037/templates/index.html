@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI学習アシスタント</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f8f9fa;
+        }
+        .hero {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            padding: 4rem 0;
+            border-radius: 0 0 10px 10px;
+            margin-bottom: 2rem;
+        }
+        .feature-card {
+            border-radius: 10px;
+            border: none;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        }
+        .feature-icon {
+            font-size: 2rem;
+            color: #6a11cb;
+            margin-bottom: 1rem;
+        }
+        .btn-gradient {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            border: none;
+            color: white;
+        }
+        .btn-gradient:hover {
+            background: linear-gradient(135deg, #5910af 0%, #1f68e0 100%);
+            color: white;
+        }
+        .footer {
+            background-color: #343a40;
+            color: white;
+            padding: 2rem 0;
+            margin-top: 3rem;
+        }
+        .demo-img {
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">AI学習アシスタント</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('login') }}">ログイン</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('register') }}">アカウント作成</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="container text-center">
+            <h1 class="display-4 fw-bold">AI学習アシスタント</h1>
+            <p class="lead mb-4">AIを活用したパーソナライズされた学習体験で、あなたの学習を効率化します</p>
+            <div class="d-flex justify-content-center">
+                <a href="{{ url_for('register') }}" class="btn btn-light btn-lg me-3 px-4">今すぐ始める</a>
+                <a href="#features" class="btn btn-outline-light btn-lg px-4">詳細を見る</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="container py-5" id="features">
+        <h2 class="text-center mb-5">主な機能</h2>
+
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card feature-card p-4">
+                    <div class="text-center">
+                        <i class="fas fa-book-open feature-icon"></i>
+                    </div>
+                    <div class="card-body text-center">
+                        <h5 class="card-title">パーソナライズされた学習コンテンツ</h5>
+                        <p class="card-text">あなたのレベルと目標に合わせて最適な学習コンテンツを提供します。初級から上級まで、段階的に学習を進めることができます。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card feature-card p-4">
+                    <div class="text-center">
+                        <i class="fas fa-question-circle feature-icon"></i>
+                    </div>
+                    <div class="card-body text-center">
+                        <h5 class="card-title">インタラクティブな質問応答</h5>
+                        <p class="card-text">学習中に生じた疑問にリアルタイムで回答します。複雑な概念も分かりやすく説明し、理解を深めるサポートをします。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card feature-card p-4">
+                    <div class="text-center">
+                        <i class="fas fa-calendar-alt feature-icon"></i>
+                    </div>
+                    <div class="card-body text-center">
+                        <h5 class="card-title">学習計画の作成</h5>
+                        <p class="card-text">あなたの目標達成に向けた最適な学習計画を作成します。効率的な学習スケジュールで、着実に知識を身につけられます。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card feature-card p-4">
+                    <div class="text-center">
+                        <i class="fas fa-tasks feature-icon"></i>
+                    </div>
+                    <div class="card-body text-center">
+                        <h5 class="card-title">クイズとテスト生成</h5>
+                        <p class="card-text">学んだ内容を確認するためのクイズやテストを自動生成します。弱点を特定し、効果的に復習することができます。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card feature-card p-4">
+                    <div class="text-center">
+                        <i class="fas fa-sticky-note feature-icon"></i>
+                    </div>
+                    <div class="card-body text-center">
+                        <h5 class="card-title">ノート作成と要約</h5>
+                        <p class="card-text">学習内容のノート作成をサポートし、重要なポイントを要約します。効率的な復習で知識の定着を促進します。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card feature-card p-4">
+                    <div class="text-center">
+                        <i class="fas fa-chart-line feature-icon"></i>
+                    </div>
+                    <div class="card-body text-center">
+                        <h5 class="card-title">進捗の追跡と分析</h5>
+                        <p class="card-text">学習の進捗状況を視覚的に確認できます。データ分析により学習パターンを把握し、さらなる改善につなげます。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="bg-light py-5">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 mb-4 mb-lg-0">
+                    <h2 class="mb-4">複数の科目をサポート</h2>
+                    <p class="lead mb-4">幅広い科目の学習をサポートしています。あなたの興味や目標に合わせて自由に選択できます。</p>
+                    <div class="d-flex flex-wrap">
+                        <div class="me-4 mb-3">
+                            <i class="fas fa-laptop-code me-2 text-primary"></i> プログラミング
+                        </div>
+                        <div class="me-4 mb-3">
+                            <i class="fas fa-square-root-alt me-2 text-primary"></i> 数学
+                        </div>
+                        <div class="me-4 mb-3">
+                            <i class="fas fa-atom me-2 text-primary"></i> 科学
+                        </div>
+                        <div class="me-4 mb-3">
+                            <i class="fas fa-language me-2 text-primary"></i> 言語
+                        </div>
+                        <div class="me-4 mb-3">
+                            <i class="fas fa-landmark me-2 text-primary"></i> 社会科学
+                        </div>
+                        <div class="mb-3">
+                            <i class="fas fa-ellipsis-h me-2 text-primary"></i> その他
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <img src="https://via.placeholder.com/600x400?text=学習科目イメージ" alt="学習科目" class="img-fluid demo-img">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="container py-5">
+        <div class="text-center mb-5">
+            <h2>学習体験の流れ</h2>
+            <p class="lead">AI学習アシスタントを使った学習の流れをご紹介します</p>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="rounded-circle bg-primary text-white d-inline-flex justify-content-center align-items-center mb-3" style="width: 50px; height: 50px;">1</div>
+                        <h4>学習計画の作成</h4>
+                        <p>あなたの目標とレベルに合わせて最適な学習計画を作成します。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="rounded-circle bg-primary text-white d-inline-flex justify-content-center align-items-center mb-3" style="width: 50px; height: 50px;">2</div>
+                        <h4>パーソナライズされた学習</h4>
+                        <p>AIが生成する最適な学習コンテンツで効率的に学習を進めます。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="rounded-circle bg-primary text-white d-inline-flex justify-content-center align-items-center mb-3" style="width: 50px; height: 50px;">3</div>
+                        <h4>理解度の確認と復習</h4>
+                        <p>クイズやテストで理解度を確認し、効果的に復習できます。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="bg-primary text-white py-5">
+        <div class="container text-center">
+            <h2 class="mb-4">今すぐ始めましょう</h2>
+            <p class="lead mb-4">AI学習アシスタントで、学習を次のレベルへ</p>
+            <a href="{{ url_for('register') }}" class="btn btn-light btn-lg">無料で登録する</a>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>AI学習アシスタント</h5>
+                    <p>AIを活用して学習体験を革新するパーソナル学習プラットフォーム</p>
+                </div>
+                <div class="col-md-3">
+                    <h5>リンク</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-white">利用規約</a></li>
+                        <li><a href="#" class="text-white">プライバシーポリシー</a></li>
+                        <li><a href="#" class="text-white">お問い合わせ</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h5>フォローする</h5>
+                    <div class="d-flex">
+                        <a href="#" class="text-white me-2"><i class="fab fa-twitter fa-lg"></i></a>
+                        <a href="#" class="text-white me-2"><i class="fab fa-facebook fa-lg"></i></a>
+                        <a href="#" class="text-white me-2"><i class="fab fa-instagram fa-lg"></i></a>
+                        <a href="#" class="text-white"><i class="fab fa-linkedin fa-lg"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center mt-4">
+                <p class="mb-0">&copy; 2023 AI学習アシスタント. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

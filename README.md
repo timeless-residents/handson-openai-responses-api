@@ -89,7 +89,7 @@ python showroom/usecase-000/main.py
 - **usecase-034**: [多言語対応ドキュメント翻訳と要約](showroom/usecase-034/README.md) - 文書の翻訳・要約・分析を行う多言語対応ツール
 - **usecase-035**: [データ分析レポート自動生成](showroom/usecase-035/README.md) - 販売データからAIを活用した詳細な分析レポートを自動生成するツール
 - **usecase-036**: [法的文書のレビューと要約](showroom/usecase-036/README.md) - PDF形式の法的文書を分析し、要約・リスク評価・専門用語の説明を行うWebアプリケーション
-- **usecase-037**: 個人向け学習アシスタント
+- **usecase-037**: [個人向け学習アシスタント](showroom/usecase-037/README.md) - AIを活用してパーソナライズされたコンテンツと学習プランを提供する学習支援アプリケーション
 - **usecase-038**: メディア内容のモデレーションと分類
 - **usecase-039**: eコマース商品の説明生成
 
