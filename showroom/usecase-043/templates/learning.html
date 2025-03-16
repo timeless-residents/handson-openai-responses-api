@@ -250,7 +250,8 @@
                             
                             if (concept) {
                                 console.log('詳細説明を要求された概念:', concept);
-                                window.location.href = `/ask_question?subject={{ subject_key }}&topic={{ topic }}&question=${encodeURIComponent(concept)}`;
+                                // クエリパラメータに詳細な説明要求を示すフラグを追加
+                                window.location.href = `/ask_question?subject={{ subject_key }}&topic={{ topic }}&question=${encodeURIComponent('「' + concept + '」について詳しく説明してください')}`;
                             }
                         } catch (error) {
                             console.error('詳細説明処理中にエラーが発生しました:', error);

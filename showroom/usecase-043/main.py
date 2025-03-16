@@ -443,15 +443,35 @@ def evaluate_user_answer():
     )
 
 
-@app.route("/ask_question", methods=["POST"])
+@app.route("/ask_question", methods=["GET", "POST"])
 def ask_question():
     """質問に回答"""
     if "user_id" not in session:
         return jsonify({"error": "セッションが無効です"})
 
-    data = request.json
     user_session = get_or_create_user_session(session["user_id"])
-
+    
+    # POSTとGETリクエストの両方に対応
+    if request.method == "POST":
+        # POSTリクエスト（APIからの呼び出し）
+        data = request.json
+    else:
+        # GETリクエスト（詳細説明ボタンからの呼び出し）
+        data = {
+            "subject": request.args.get("subject"),
+            "topic": request.args.get("topic"),
+            "question": request.args.get("question")
+        }
+        
+        # URLパラメータのいずれかが欠けている場合
+        if not all(data.values()):
+            return render_template(
+                "error.html",
+                error="リクエストパラメータが不足しています",
+                back_url=url_for('select_subject')
+            )
+    
+    # 質問に回答
     answer = answer_question(
         data["subject"],
         data["topic"],
@@ -470,8 +490,36 @@ def ask_question():
             "question": data["question"],
         }
     )
-
-    return jsonify({"answer": markdown.markdown(answer)})
+    
+    # リクエスト方式に応じて応答を返す
+    if request.method == "POST":
+        # API呼び出しにはJSON応答
+        return jsonify({"answer": markdown.markdown(answer)})
+    else:
+        # URLからの呼び出しにはHTMLページを表示
+        subject_key = data["subject"]
+        topic = data["topic"]
+        
+        # 教科情報がない場合のフォールバック
+        if subject_key not in SUBJECTS:
+            return render_template(
+                "error.html",
+                error=f"科目「{subject_key}」が見つかりません",
+                back_url=url_for('select_subject')
+            )
+        
+        # マークダウンをHTMLに変換
+        answer_html = markdown.markdown(answer)
+        
+        return render_template(
+            "question_result.html",
+            subject=SUBJECTS[subject_key],
+            subject_key=subject_key,
+            topic=topic,
+            question=data["question"],
+            answer=answer_html,
+            user_session=user_session
+        )
 
 
 @app.route("/create_plan", methods=["GET", "POST"])
