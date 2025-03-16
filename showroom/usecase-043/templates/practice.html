@@ -107,219 +107,369 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // 問題と解答を処理
-            processPracticeProblems();
-            
-            // 問題再生成ボタン
-            document.getElementById('regenerateBtn').addEventListener('click', function() {
-                // パラメータを追加して新しい問題を生成
-                window.location.href = window.location.pathname + '?regenerate=true';
-            });
+            try {
+                // コンソールログでデバッグ情報を表示
+                console.log('DOMContentLoaded イベントが発火しました');
+                
+                // 問題と解答を処理
+                processPracticeProblems();
+                
+                // 問題再生成ボタン - 存在チェック追加
+                const regenerateBtn = document.getElementById('regenerateBtn');
+                console.log('regenerateBtn:', regenerateBtn);
+                
+                if (regenerateBtn) {
+                    regenerateBtn.addEventListener('click', function(event) {
+                        // ボタンクリックイベントのデフォルト動作を停止
+                        event.preventDefault();
+                        console.log('regenerateBtn がクリックされました');
+                        
+                        // パラメータを追加して新しい問題を生成
+                        window.location.href = window.location.pathname + '?regenerate=true';
+                    });
+                    console.log('regenerateBtn にイベントリスナーを追加しました');
+                } else {
+                    console.error('regenerateBtn 要素が見つかりません');
+                }
+            } catch (error) {
+                console.error('初期化中にエラーが発生しました:', error);
+            }
         });
         
         function processPracticeProblems() {
-            // Markdownが適切に処理されていることを前提とする
-            const problemsContainer = document.getElementById('problems-container');
-            
-            // H3要素を問題のタイトルと見なし、各問題をカードに変換
-            const problems = problemsContainer.querySelectorAll('h3, h2');
-            
-            problems.forEach((problem, index) => {
-                if (problem.textContent.includes('問題') || problem.textContent.includes('練習問題')) {
-                    // 問題のセクションを見つける
-                    let problemContent = extractProblemContent(problem);
-                    
-                    // 問題と解答部分を分離
-                    const hasSolution = problemContent.innerHTML.includes('解答') || 
-                                      problemContent.innerHTML.includes('答え') || 
-                                      problemContent.innerHTML.includes('解説');
-                    
-                    if (hasSolution) {
-                        // オリジナルのコンテンツを保存
-                        const originalContent = problemContent.innerHTML;
-                        
-                        // 解答部分を非表示にする新しいHTML
-                        let newHTML = createProblemCard(problem.textContent, originalContent, index);
-                        
-                        // オリジナルのコンテンツを削除して新しいカードに置き換え
-                        let wrapper = document.createElement('div');
-                        wrapper.innerHTML = newHTML;
-                        problemContent.parentNode.insertBefore(wrapper, problemContent);
-                        problemContent.remove();
-                        problem.remove();
-                    }
+            try {
+                // Markdownが適切に処理されていることを前提とする
+                const problemsContainer = document.getElementById('problems-container');
+                
+                if (!problemsContainer) {
+                    console.error('problems-container 要素が見つかりません');
+                    return;
                 }
-            });
-            
-            // 「解答を表示」ボタンのイベントハンドラ
-            document.querySelectorAll('.show-solution-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const problemId = this.getAttribute('data-problem-id');
-                    const solutionElement = document.getElementById(`solution-${problemId}`);
+                
+                console.log('問題コンテナ内のHTML:', problemsContainer.innerHTML);
+                
+                // H3要素を問題のタイトルと見なし、各問題をカードに変換
+                const problems = problemsContainer.querySelectorAll('h3, h2');
+                console.log('見つかった問題タイトル数:', problems.length);
+                
+                if (problems.length === 0) {
+                    console.log('問題タイトルが見つかりませんでした。問題生成APIからの応答を確認してください。');
+                    // 問題が見つからない場合は、コンテナに通知を表示
+                    problemsContainer.innerHTML += `
+                        <div class="alert alert-info">
+                            <h4>問題の処理中にエラーが発生しました</h4>
+                            <p>新しい問題を生成してください。</p>
+                            <a href="${window.location.pathname}?regenerate=true" class="btn btn-primary">新しい問題を生成</a>
+                        </div>
+                    `;
+                }
+                
+                problems.forEach((problem, index) => {
+                    try {
+                        if (problem.textContent.includes('問題') || problem.textContent.includes('練習問題')) {
+                            console.log(`問題${index + 1}を処理中:`, problem.textContent);
+                            // 問題のセクションを見つける
+                            let problemContent = extractProblemContent(problem);
                     
-                    if (solutionElement.style.display === 'none' || !solutionElement.style.display) {
-                        solutionElement.style.display = 'block';
-                        this.textContent = '解答を隠す';
-                    } else {
-                        solutionElement.style.display = 'none';
-                        this.textContent = '解答を表示';
+                            // 問題と解答部分を分離
+                            const hasSolution = problemContent.innerHTML.includes('解答') || 
+                                              problemContent.innerHTML.includes('答え') || 
+                                              problemContent.innerHTML.includes('解説');
+                            
+                            console.log(`問題${index + 1}は解答を含んでいますか:`, hasSolution);
+                            
+                            if (hasSolution) {
+                                // オリジナルのコンテンツを保存
+                                const originalContent = problemContent.innerHTML;
+                                
+                                // 解答部分を非表示にする新しいHTML
+                                let newHTML = createProblemCard(problem.textContent, originalContent, index);
+                                
+                                // オリジナルのコンテンツを削除して新しいカードに置き換え
+                                let wrapper = document.createElement('div');
+                                wrapper.innerHTML = newHTML;
+                                problemContent.parentNode.insertBefore(wrapper, problemContent);
+                                problemContent.remove();
+                                problem.remove();
+                            }
+                        }
+                    } catch (error) {
+                        console.error(`問題${index + 1}の処理中にエラーが発生しました:`, error);
                     }
                 });
-            });
+            } catch (error) {
+                console.error('問題処理中にエラーが発生しました:', error);
+            }
+        }
             
-            // 回答評価ボタンのイベントハンドラ
-            document.querySelectorAll('.evaluate-btn').forEach(btn => {
+        // 「解答を表示」ボタンのイベントハンドラ
+        try {
+            const showSolutionButtons = document.querySelectorAll('.show-solution-btn');
+            console.log('解答表示ボタン数:', showSolutionButtons.length);
+            
+            showSolutionButtons.forEach(btn => {
                 btn.addEventListener('click', function() {
-                    const problemId = this.getAttribute('data-problem-id');
-                    const userAnswer = document.getElementById(`answer-${problemId}`).value.trim();
-                    const questionText = document.getElementById(`question-${problemId}`).textContent;
-                    const correctAnswer = document.getElementById(`correct-answer-${problemId}`).textContent;
-                    
-                    if (!userAnswer) {
-                        alert('回答を入力してください');
-                        return;
-                    }
-                    
-                    // 評価処理中の表示
-                    this.disabled = true;
-                    this.textContent = '評価中...';
-                    const btn = this;
-                    
-                    // APIリクエスト送信
-                    fetch('/evaluate_answer', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            subject: '{{ subject_key }}',
-                            topic: '{{ topic }}',
-                            question: questionText,
-                            user_answer: userAnswer,
-                            correct_answer: correctAnswer
-                        }),
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        // フィードバック表示
-                        const feedbackElement = document.getElementById(`feedback-${problemId}`);
-                        feedbackElement.innerHTML = data.feedback;
-                        feedbackElement.style.display = 'block';
+                    try {
+                        const problemId = this.getAttribute('data-problem-id');
+                        console.log('解答表示ボタンがクリックされました - 問題ID:', problemId);
                         
-                        // スコア表示
-                        const scoreElement = document.getElementById(`score-${problemId}`);
-                        const score = Math.round(data.understanding_score * 100);
-                        scoreElement.textContent = `理解度スコア: ${score}%`;
-                        
-                        if (score >= 80) {
-                            scoreElement.classList.add('text-success');
-                        } else if (score >= 50) {
-                            scoreElement.classList.add('text-warning');
-                        } else {
-                            scoreElement.classList.add('text-danger');
+                        const solutionElement = document.getElementById(`solution-${problemId}`);
+                        if (!solutionElement) {
+                            console.error(`solution-${problemId} 要素が見つかりません`);
+                            return;
                         }
                         
-                        scoreElement.style.display = 'block';
-                        
-                        // ボタン状態の復元
-                        btn.disabled = false;
-                        btn.textContent = '回答を再評価';
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        alert('エラーが発生しました。もう一度お試しください。');
-                        
-                        // ボタン状態の復元
-                        btn.disabled = false;
-                        btn.textContent = '回答を評価';
-                    });
+                        if (solutionElement.style.display === 'none' || !solutionElement.style.display) {
+                            solutionElement.style.display = 'block';
+                            this.textContent = '解答を隠す';
+                        } else {
+                            solutionElement.style.display = 'none';
+                            this.textContent = '解答を表示';
+                        }
+                    } catch (error) {
+                        console.error('解答表示処理中にエラーが発生しました:', error);
+                    }
                 });
             });
+        } catch (error) {
+            console.error('解答表示ボタン初期化中にエラーが発生しました:', error);
+        }
+            
+        // 回答評価ボタンのイベントハンドラ
+        try {
+            const evaluateButtons = document.querySelectorAll('.evaluate-btn');
+            console.log('評価ボタン数:', evaluateButtons.length);
+            
+            evaluateButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    try {
+                        const problemId = this.getAttribute('data-problem-id');
+                        console.log('評価ボタンがクリックされました - 問題ID:', problemId);
+                        
+                        const answerElement = document.getElementById(`answer-${problemId}`);
+                        const questionElement = document.getElementById(`question-${problemId}`);
+                        const correctAnswerElement = document.getElementById(`correct-answer-${problemId}`);
+                        
+                        if (!answerElement || !questionElement || !correctAnswerElement) {
+                            console.error('必要な要素が見つかりません');
+                            alert('フォーム要素が見つかりません。ページを再読み込みしてください。');
+                            return;
+                        }
+                        
+                        const userAnswer = answerElement.value.trim();
+                        const questionText = questionElement.textContent;
+                        const correctAnswer = correctAnswerElement.textContent;
+                        
+                        if (!userAnswer) {
+                            alert('回答を入力してください');
+                            return;
+                        }
+                        
+                        console.log('回答データ:', {
+                            question: questionText.substring(0, 50) + '...',
+                            answer: userAnswer.substring(0, 50) + '...',
+                            correctAnswer: correctAnswer.substring(0, 50) + '...'
+                        });
+                        
+                        // 評価処理中の表示
+                        this.disabled = true;
+                        this.textContent = '評価中...';
+                        const thisBtn = this; // thisの参照を保存
+                        
+                        // APIリクエスト送信
+                        fetch('/evaluate_answer', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                subject: '{{ subject_key }}',
+                                topic: '{{ topic }}',
+                                question: questionText,
+                                user_answer: userAnswer,
+                                correct_answer: correctAnswer
+                            }),
+                        })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('サーバーからのレスポンスが正常ではありません: ' + response.status);
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            console.log('評価結果を受信:', data);
+                            
+                            // フィードバック表示
+                            const feedbackElement = document.getElementById(`feedback-${problemId}`);
+                            if (feedbackElement) {
+                                feedbackElement.innerHTML = data.feedback;
+                                feedbackElement.style.display = 'block';
+                            }
+                            
+                            // スコア表示
+                            const scoreElement = document.getElementById(`score-${problemId}`);
+                            if (scoreElement) {
+                                const score = Math.round(data.understanding_score * 100);
+                                scoreElement.textContent = `理解度スコア: ${score}%`;
+                                
+                                // スコアに応じたクラス設定
+                                scoreElement.classList.remove('text-success', 'text-warning', 'text-danger');
+                                if (score >= 80) {
+                                    scoreElement.classList.add('text-success');
+                                } else if (score >= 50) {
+                                    scoreElement.classList.add('text-warning');
+                                } else {
+                                    scoreElement.classList.add('text-danger');
+                                }
+                                
+                                scoreElement.style.display = 'block';
+                            }
+                            
+                            // ボタン状態の復元
+                            thisBtn.disabled = false;
+                            thisBtn.textContent = '回答を再評価';
+                        })
+                        .catch(error => {
+                            console.error('評価APIエラー:', error);
+                            alert('エラーが発生しました。もう一度お試しください。');
+                            
+                            // ボタン状態の復元
+                            thisBtn.disabled = false;
+                            thisBtn.textContent = '回答を評価';
+                        });
+                    } catch (error) {
+                        console.error('回答評価処理中にエラーが発生しました:', error);
+                        alert('処理中にエラーが発生しました。ページを再読み込みしてください。');
+                    }
+                });
+            });
+        } catch (error) {
+            console.error('評価ボタン初期化中にエラーが発生しました:', error);
         }
         
         function extractProblemContent(problemHeading) {
-            let content = problemHeading;
-            let siblings = [];
-            
-            // 次の問題見出しまでの要素を集める
-            while (content.nextElementSibling) {
-                if (content.nextElementSibling.tagName === 'H2' || content.nextElementSibling.tagName === 'H3') {
-                    if (content.nextElementSibling.textContent.includes('問題') || 
-                        content.nextElementSibling.textContent.includes('練習問題')) {
-                        break;
+            try {
+                let content = problemHeading;
+                let siblings = [];
+                
+                // 次の問題見出しまでの要素を集める
+                while (content.nextElementSibling) {
+                    if (content.nextElementSibling.tagName === 'H2' || content.nextElementSibling.tagName === 'H3') {
+                        if (content.nextElementSibling.textContent.includes('問題') || 
+                            content.nextElementSibling.textContent.includes('練習問題')) {
+                            break;
+                        }
                     }
+                    siblings.push(content.nextElementSibling);
+                    content = content.nextElementSibling;
                 }
-                siblings.push(content.nextElementSibling);
-                content = content.nextElementSibling;
+                
+                // 問題内容を含むコンテナを作成
+                const container = document.createElement('div');
+                siblings.forEach(sibling => {
+                    container.appendChild(sibling.cloneNode(true));
+                });
+                
+                return container;
+            } catch (error) {
+                console.error('問題コンテンツ抽出中にエラーが発生しました:', error);
+                // エラー時には空のコンテナを返す
+                return document.createElement('div');
             }
-            
-            // 問題内容を含むコンテナを作成
-            const container = document.createElement('div');
-            siblings.forEach(sibling => {
-                container.appendChild(sibling.cloneNode(true));
-            });
-            
-            return container;
         }
         
         function createProblemCard(title, content, index) {
-            // 解答部分を特定
-            const solutionStart = content.indexOf('<h4>解答</h4>') !== -1 ? content.indexOf('<h4>解答</h4>') :
-                                content.indexOf('<h4>答え</h4>') !== -1 ? content.indexOf('<h4>答え</h4>') :
-                                content.indexOf('<h4>解説</h4>') !== -1 ? content.indexOf('<h4>解説</h4>') :
-                                content.indexOf('<strong>解答</strong>') !== -1 ? content.indexOf('<strong>解答</strong>') :
-                                content.indexOf('<strong>答え</strong>') !== -1 ? content.indexOf('<strong>答え</strong>') :
-                                content.indexOf('<strong>解説</strong>') !== -1 ? content.indexOf('<strong>解説</strong>') :
-                                -1;
-            
-            if (solutionStart === -1) {
-                // 解答部分が見つからない場合はそのまま返す
+            try {
+                // 解答部分を特定
+                const searchTerms = [
+                    '<h4>解答</h4>', '<h4>答え</h4>', '<h4>解説</h4>',
+                    '<strong>解答</strong>', '<strong>答え</strong>', '<strong>解説</strong>'
+                ];
+                
+                let solutionStart = -1;
+                for (const term of searchTerms) {
+                    if (content.indexOf(term) !== -1) {
+                        solutionStart = content.indexOf(term);
+                        console.log(`解答部分を発見（${term}）: インデックス=${solutionStart}`);
+                        break;
+                    }
+                }
+                
+                // ログ出力（デバッグ用）
+                console.log(`問題${index + 1} 解答部分インデックス:`, solutionStart);
+                if (solutionStart > 0) {
+                    console.log(`問題文: ${content.substring(0, Math.min(50, solutionStart))}...`);
+                    console.log(`解答: ${content.substring(solutionStart, Math.min(solutionStart + 50, content.length))}...`);
+                }
+                
+                if (solutionStart === -1) {
+                    console.log(`問題${index + 1} の解答部分が見つかりませんでした`);
+                    // 解答部分が見つからない場合はそのまま返す
+                    return `
+                    <div class="card problem-card mb-4">
+                        <div class="card-header">
+                            <h3>${title}</h3>
+                        </div>
+                        <div class="card-body">
+                            ${content}
+                            <div class="alert alert-warning mt-3">
+                                <p><strong>注意:</strong> この問題には解答部分が見つかりませんでした。問題形式が標準と異なる場合があります。</p>
+                            </div>
+                        </div>
+                    </div>`;
+                }
+                
+                // 問題文と解答を分離
+                const questionText = content.substring(0, solutionStart);
+                const solutionText = content.substring(solutionStart);
+                
                 return `
                 <div class="card problem-card mb-4">
                     <div class="card-header">
                         <h3>${title}</h3>
                     </div>
                     <div class="card-body">
-                        ${content}
+                        <div id="question-${index}" class="question-section">
+                            ${questionText}
+                        </div>
+                        
+                        <div class="user-answer-section">
+                            <div class="form-group">
+                                <label for="answer-${index}"><strong>あなたの回答:</strong></label>
+                                <textarea id="answer-${index}" class="form-control" rows="4" placeholder="ここに回答を入力してください..."></textarea>
+                            </div>
+                            <div class="mt-2">
+                                <button class="btn btn-primary evaluate-btn" data-problem-id="${index}">回答を評価</button>
+                                <button class="btn btn-outline-secondary show-solution-btn" data-problem-id="${index}">解答を表示</button>
+                            </div>
+                        </div>
+                        
+                        <div class="score-display" id="score-${index}" style="display: none;"></div>
+                        
+                        <div id="feedback-${index}" class="feedback-section"></div>
+                        
+                        <div id="solution-${index}" class="solution">
+                            <div id="correct-answer-${index}" style="display: none;">${solutionText}</div>
+                            ${solutionText}
+                        </div>
+                    </div>
+                </div>`;
+            } catch (error) {
+                console.error(`問題カード生成中にエラーが発生しました (問題${index + 1}):`, error);
+                // エラー時には簡易的なカードを返す
+                return `
+                <div class="card problem-card mb-4">
+                    <div class="card-header">
+                        <h3>${title || '問題'}</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-danger">
+                            <p><strong>エラー:</strong> 問題の処理中にエラーが発生しました。別の問題を試すか、ページを再読み込みしてください。</p>
+                        </div>
+                        <a href="${window.location.pathname}?regenerate=true" class="btn btn-primary">新しい問題を生成</a>
                     </div>
                 </div>`;
             }
-            
-            // 問題文と解答を分離
-            const questionText = content.substring(0, solutionStart);
-            const solutionText = content.substring(solutionStart);
-            
-            return `
-            <div class="card problem-card mb-4">
-                <div class="card-header">
-                    <h3>${title}</h3>
-                </div>
-                <div class="card-body">
-                    <div id="question-${index}" class="question-section">
-                        ${questionText}
-                    </div>
-                    
-                    <div class="user-answer-section">
-                        <div class="form-group">
-                            <label for="answer-${index}"><strong>あなたの回答:</strong></label>
-                            <textarea id="answer-${index}" class="form-control" rows="4" placeholder="ここに回答を入力してください..."></textarea>
-                        </div>
-                        <div class="mt-2">
-                            <button class="btn btn-primary evaluate-btn" data-problem-id="${index}">回答を評価</button>
-                            <button class="btn btn-outline-secondary show-solution-btn" data-problem-id="${index}">解答を表示</button>
-                        </div>
-                    </div>
-                    
-                    <div class="score-display" id="score-${index}" style="display: none;"></div>
-                    
-                    <div id="feedback-${index}" class="feedback-section"></div>
-                    
-                    <div id="solution-${index}" class="solution">
-                        <div id="correct-answer-${index}" style="display: none;">${solutionText}</div>
-                        ${solutionText}
-                    </div>
-                </div>
-            </div>`;
         }
     </script>
 </body>
