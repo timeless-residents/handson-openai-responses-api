@@ -371,7 +371,7 @@ def practice(subject, topic):
     regenerate = request.args.get('regenerate', 'false').lower() == 'true'
     
     # キャッシュキー - 同じ問題を再表示するために使用
-    cache_key = f"practice_{subject}_{topic}_{user_session['user_id']}"
+    cache_key = f"practice_{subject}_{topic}"
     
     # 練習問題の生成 (regenerateがtrueの場合または初めての場合)
     if regenerate or cache_key not in user_session:
