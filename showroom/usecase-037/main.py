@@ -703,7 +703,7 @@ def select_subject():
         study_session = StudySession(
             user_id=current_user.id,
             subject_id=subject.id,
-            start_time=datetime.utcnow()
+            start_time=datetime.now(datetime.UTC)
         )
         db.session.add(study_session)
         db.session.commit()
@@ -1501,7 +1501,15 @@ def generate_initial_topics(subject, level):
         # 余分な文字を削除
         json_str = re.sub(r'[^\x00-\x7F]+', ' ', json_str)
         topics = json.loads(json_str)
-        return topics.get("topics", [])
+        
+        # topics が list 型の場合の対応
+        if isinstance(topics, list):
+            return topics
+        elif isinstance(topics, dict) and "topics" in topics:
+            return topics.get("topics", [])
+        else:
+            logger.error(f"予期しないJSON形式: {topics}")
+            return []
     except Exception as e:
         logger.error(f"JSON解析エラー: {str(e)}")
         return []
