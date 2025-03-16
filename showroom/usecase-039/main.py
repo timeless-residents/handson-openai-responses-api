@@ -72,8 +72,8 @@ def generate_summary_statistics(df: pd.DataFrame) -> Dict[str, Any]:
     summary = {}
     
     # 基本情報
-    summary['row_count'] = len(df)
-    summary['column_count'] = len(df.columns)
+    summary['row_count'] = int(len(df))
+    summary['column_count'] = int(len(df.columns))
     summary['columns'] = df.columns.tolist()
     
     # 数値列の統計量
@@ -82,11 +82,11 @@ def generate_summary_statistics(df: pd.DataFrame) -> Dict[str, Any]:
         summary['numeric_stats'] = {}
         for col in numeric_columns:
             summary['numeric_stats'][col] = {
-                'mean': df[col].mean(),
-                'median': df[col].median(),
-                'std': df[col].std(),
-                'min': df[col].min(),
-                'max': df[col].max()
+                'mean': float(df[col].mean()),
+                'median': float(df[col].median()),
+                'std': float(df[col].std()),
+                'min': float(df[col].min()),
+                'max': float(df[col].max())
             }
     
     # カテゴリ列の統計量
@@ -95,8 +95,11 @@ def generate_summary_statistics(df: pd.DataFrame) -> Dict[str, Any]:
         summary['categorical_stats'] = {}
         for col in categorical_columns:
             value_counts = df[col].value_counts().to_dict()
+            # int64キーをstrに変換
+            value_counts = {str(k) if isinstance(k, (np.int64, np.int32)) else k: int(v) 
+                           for k, v in value_counts.items()}
             summary['categorical_stats'][col] = {
-                'unique_count': df[col].nunique(),
+                'unique_count': int(df[col].nunique()),
                 'top_values': dict(sorted(value_counts.items(), key=lambda x: x[1], reverse=True)[:5])
             }
     
@@ -106,7 +109,7 @@ def generate_summary_statistics(df: pd.DataFrame) -> Dict[str, Any]:
         try:
             if df[col].dtype == 'object':
                 # 日付への変換を試みる
-                pd.to_datetime(df[col])
+                pd.to_datetime(df[col], format='%Y-%m-%d')
                 date_columns.append(col)
         except:
             continue
@@ -114,11 +117,11 @@ def generate_summary_statistics(df: pd.DataFrame) -> Dict[str, Any]:
     if date_columns:
         summary['date_stats'] = {}
         for col in date_columns:
-            dates = pd.to_datetime(df[col])
+            dates = pd.to_datetime(df[col], format='%Y-%m-%d')
             summary['date_stats'][col] = {
                 'min_date': dates.min().isoformat(),
                 'max_date': dates.max().isoformat(),
-                'range_days': (dates.max() - dates.min()).days
+                'range_days': int((dates.max() - dates.min()).days)
             }
     
     return summary
@@ -241,8 +244,19 @@ def create_visualization_charts(df: pd.DataFrame) -> List[Dict[str, str]]:
 
 def create_analysis_request(df: pd.DataFrame, stats: Dict[str, Any], charts: List[Dict[str, str]]) -> Dict[str, Any]:
     """分析リクエストを作成"""
-    # データサンプルの準備
-    data_sample = df.head(10).to_dict()
+    # データサンプルの準備 - NumPy型をPythonネイティブ型に変換
+    data_sample = {}
+    for col, values in df.head(10).to_dict().items():
+        column_dict = {}
+        for idx, val in values.items():
+            # NumPy型をPythonネイティブ型に変換
+            if isinstance(val, (np.int64, np.int32)):
+                column_dict[int(idx)] = int(val)
+            elif isinstance(val, (np.float64, np.float32)):
+                column_dict[int(idx)] = float(val)
+            else:
+                column_dict[int(idx)] = val
+        data_sample[col] = column_dict
     
     # チャートの説明
     chart_descriptions = []
@@ -408,6 +422,18 @@ def interactive_analysis(df: pd.DataFrame) -> None:
             
         with console.status("[bold green]質問を分析中...[/bold green]"):
             try:
+                # 安全な文字列変換のためのヘルパー関数
+                def safe_repr(obj):
+                    if isinstance(obj, (np.int64, np.int32)):
+                        return int(obj)
+                    elif isinstance(obj, (np.float64, np.float32)):
+                        return float(obj)
+                    return obj
+                
+                # データフレームのサンプルと統計情報を安全に文字列化
+                df_sample = df.head(10).copy()
+                df_describe = df.describe().copy()
+                
                 # OpenAI APIにリクエスト送信
                 response = openai.chat.completions.create(
                     model="gpt-4o",
@@ -421,12 +447,12 @@ def interactive_analysis(df: pd.DataFrame) -> None:
                             "content": f"""以下のデータについて質問します：
 
 データサンプル:
-{df.head(10).to_markdown()}
+{df_sample.to_string()}
 
 質問: {question}
 
-データの概要:
-{df.describe().to_markdown()}
+データの概要（数値列のみ）:
+{df_describe.to_string()}
 """
                         }
                     ]
