@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ note.title }} - 個人向け学習アシスタント</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/styles/github.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .container {
+            max-width: 1140px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            border: none;
+        }
+        .card-header {
+            background-color: #4285f4;
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+            padding: 15px 20px;
+        }
+        .card-body {
+            padding: 20px;
+        }
+        .note-metadata {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        .note-content {
+            line-height: 1.6;
+        }
+        .note-content h1, .note-content h2, .note-content h3 {
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .note-content p {
+            margin-bottom: 1rem;
+        }
+        .note-content pre {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .note-content code {
+            font-family: 'Courier New', Courier, monospace;
+        }
+        .note-content blockquote {
+            border-left: 4px solid #4285f4;
+            padding-left: 15px;
+            color: #6c757d;
+        }
+        .note-content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+        .btn-back {
+            margin-bottom: 20px;
+        }
+        .note-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+        }
+        .wordcloud-section {
+            margin-top: 30px;
+        }
+        .wordcloud-image {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .summary-section {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f1f8e9;
+            border-radius: 10px;
+            border-left: 4px solid #689f38;
+        }
+        .summary-content {
+            display: none;
+        }
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            .note-metadata {
+                flex-direction: column;
+            }
+            .note-metadata div {
+                margin-bottom: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="{{ url_for('notes') }}" class="btn btn-outline-primary btn-back">
+            <i class="fas fa-arrow-left"></i> ノート一覧に戻る
+        </a>
+        
+        <div class="card">
+            <div class="card-header">
+                <h2>{{ note.title }}</h2>
+            </div>
+            <div class="card-body">
+                <div class="note-metadata">
+                    <div>
+                        <i class="fas fa-book"></i> {{ note.subject.name }}
+                        {% if note.topic %}
+                        <span class="mx-2">|</span>
+                        <i class="fas fa-tag"></i> {{ note.topic.name }}
+                        {% endif %}
+                    </div>
+                    <div>
+                        <i class="fas fa-clock"></i> 作成: {{ note.created_at.strftime('%Y/%m/%d %H:%M') }}
+                        <span class="mx-2">|</span>
+                        <i class="fas fa-edit"></i> 更新: {{ note.updated_at.strftime('%Y/%m/%d %H:%M') }}
+                    </div>
+                </div>
+
+                <div class="note-content">
+                    {{ content_html|safe }}
+                </div>
+
+                <div class="note-actions">
+                    <div>
+                        <button id="summarize-btn" class="btn btn-outline-success">
+                            <i class="fas fa-compress-alt"></i> 要約する
+                        </button>
+                    </div>
+                    <div>
+                        <a href="{{ url_for('edit_note', note_id=note.id) }}" class="btn btn-primary">
+                            <i class="fas fa-edit"></i> 編集
+                        </a>
+                    </div>
+                </div>
+
+                <div id="summary-section" class="summary-section" style="display: none;">
+                    <h4><i class="fas fa-compress-alt"></i> ノートの要約</h4>
+                    <div id="summary-loading">
+                        <div class="d-flex align-items-center">
+                            <div class="spinner-border text-success me-3" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <span>AIによる要約を生成しています...</span>
+                        </div>
+                    </div>
+                    <div id="summary-content" class="summary-content mt-3"></div>
+                </div>
+
+                <div class="wordcloud-section">
+                    <h4><i class="fas fa-cloud"></i> ワードクラウド</h4>
+                    <img src="{{ wordcloud }}" alt="Word Cloud" class="wordcloud-image">
+                    <p class="text-center text-muted mt-2">このノートに頻出する単語の視覚化</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/lib/highlight.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // コードのシンタックスハイライト
+            document.querySelectorAll('pre code').forEach((block) => {
+                hljs.highlightBlock(block);
+            });
+            
+            // 要約ボタンのクリックイベント
+            $('#summarize-btn').click(function() {
+                const summarySection = $('#summary-section');
+                
+                // すでに要約が表示されている場合は切り替えるだけ
+                if (summarySection.is(':visible') && $('#summary-content').html().trim()) {
+                    summarySection.slideToggle();
+                    return;
+                }
+                
+                // 要約セクションを表示
+                summarySection.slideDown();
+                $('#summary-loading').show();
+                $('#summary-content').hide();
+                
+                // API呼び出し
+                $.ajax({
+                    url: "{{ url_for('summarize_note', note_id=note.id) }}",
+                    type: 'POST',
+                    success: function(data) {
+                        $('#summary-loading').hide();
+                        $('#summary-content').html(data.summary).show();
+                    },
+                    error: function() {
+                        $('#summary-loading').hide();
+                        $('#summary-content').html('<div class="alert alert-danger">要約の生成中にエラーが発生しました。もう一度お試しください。</div>').show();
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

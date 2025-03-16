@@ -1,0 +1,203 @@
+{% extends "layout.html" %}
+
+{% block title %}ダッシュボード{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">ダッシュボード</h1>
+    <div class="row">
+        <!-- 統計カード -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    学習時間
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">合計: {{ total_study_time }} 分</h5>
+                    <p class="card-text">過去30日間: {{ subject_times.values()|sum }} 分</p>
+                    <div class="progress mt-3">
+                        <div class="progress-bar" role="progressbar" 
+                             style="width: {% if (subject_times.values()|sum / 3000 * 100)|round|int > 100 %}100{% else %}{{ (subject_times.values()|sum / 3000 * 100)|round|int }}{% endif %}%" 
+                             aria-valuenow="{{ subject_times.values()|sum }}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="3000">
+                            {% if (subject_times.values()|sum / 3000 * 100)|round|int > 100 %}100{% else %}{{ (subject_times.values()|sum / 3000 * 100)|round|int }}{% endif %}%
+                        </div>
+                    </div>
+                    <small class="text-muted">月間目標: 3000分</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-success text-white">
+                    クイズ成績
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">平均スコア: {{ avg_score|round|int }}%</h5>
+                    <p class="card-text">
+                        {% if recent_quizzes|length > 0 %}
+                        最近のクイズ: {{ recent_quizzes[0].title }}
+                        {% else %}
+                        まだクイズの記録がありません
+                        {% endif %}
+                    </p>
+                    <a href="{{ url_for('quizzes.index') }}" class="btn btn-outline-success">クイズを作成</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-info text-white">
+                    学習計画
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">
+                        {% if active_plans|length > 0 %}
+                        {{ active_plans|length }} 件の計画
+                        {% else %}
+                        学習計画がありません
+                        {% endif %}
+                    </h5>
+                    <p class="card-text">
+                        {% if active_plans|length > 0 %}
+                        最新の計画: {{ active_plans[0].title }}
+                        {% endif %}
+                    </p>
+                    <a href="{{ url_for('plans.index') }}" class="btn btn-outline-info">計画を作成</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 学習プランの進捗 -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    アクティブな学習プラン
+                </div>
+                <div class="card-body">
+                    {% if active_plans|length > 0 %}
+                    <div class="list-group">
+                        {% for plan in active_plans %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-1">{{ plan.title }}</h5>
+                                <span class="badge bg-primary rounded-pill">進捗: {{ plan.progress }}%</span>
+                            </div>
+                            <p class="mb-1">{{ plan.subject.name }} ({{ plan.level }})</p>
+                            <div class="progress mt-2">
+                                <div class="progress-bar" role="progressbar" 
+                                     style="width: {{ plan.progress }}%" 
+                                     aria-valuenow="{{ plan.progress }}" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="100">
+                                    {{ plan.progress }}%
+                                </div>
+                            </div>
+                            <small class="text-muted">作成日: {{ format_datetime(plan.created_at) }}</small>
+                            <a href="{{ url_for('plans.view', plan_id=plan.id) }}" class="btn btn-sm btn-outline-primary mt-2">詳細を表示</a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-center">アクティブな学習プランがありません。</p>
+                    <div class="text-center">
+                        <a href="{{ url_for('plans.index') }}" class="btn btn-primary">学習プランを作成</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 最近の活動 -->
+    <div class="row mt-4">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-success text-white">
+                    最近のクイズ
+                </div>
+                <div class="card-body">
+                    {% if recent_quizzes|length > 0 %}
+                    <div class="list-group">
+                        {% for quiz in recent_quizzes %}
+                        <a href="{{ url_for('quizzes.view', quiz_id=quiz.id) }}" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">{{ quiz.title }}</h5>
+                                {% if quiz.completed_at %}
+                                <small class="text-success">スコア: {{ quiz.score|round|int }}%</small>
+                                {% else %}
+                                <small class="text-warning">未完了</small>
+                                {% endif %}
+                            </div>
+                            <p class="mb-1">{{ quiz.subject.name }}: {{ quiz.topic }}</p>
+                            <small class="text-muted">{{ format_datetime(quiz.created_at) }}</small>
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-center">クイズの記録がありません。</p>
+                    <div class="text-center">
+                        <a href="{{ url_for('quizzes.index') }}" class="btn btn-success">クイズを作成</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-info text-white">
+                    最近のノート
+                </div>
+                <div class="card-body">
+                    {% if recent_notes|length > 0 %}
+                    <div class="list-group">
+                        {% for note in recent_notes %}
+                        <a href="{{ url_for('notes.view', note_id=note.id) }}" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">{{ note.title }}</h5>
+                            </div>
+                            <p class="mb-1">{{ note.subject.name }}: {{ note.topic }}</p>
+                            <small class="text-muted">更新: {{ format_datetime(note.updated_at) }}</small>
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-center">ノートの記録がありません。</p>
+                    <div class="text-center">
+                        <a href="{{ url_for('notes.index') }}" class="btn btn-info">ノートを作成</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-warning text-dark">
+                    最近の学習セッション
+                </div>
+                <div class="card-body">
+                    {% if recent_sessions|length > 0 %}
+                    <div class="list-group">
+                        {% for session in recent_sessions %}
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">{{ session.subject.name }}</h5>
+                                <small>{{ session.duration_minutes }} 分</small>
+                            </div>
+                            <p class="mb-1">{{ session.topic }}</p>
+                            <small class="text-muted">{{ format_datetime(session.start_time) }}</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-center">学習セッションの記録がありません。</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

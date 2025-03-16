@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学習統計 - 個人向け学習アシスタント</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .container {
+            max-width: 1140px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            border: none;
+        }
+        .card-header {
+            background-color: #4285f4;
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+            padding: 15px 20px;
+        }
+        .card-body {
+            padding: 20px;
+        }
+        .stats-header {
+            margin-bottom: 30px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        .stat-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            color: #4285f4;
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        .chart-container {
+            margin-bottom: 30px;
+        }
+        .chart-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        .chart-title {
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e9ecef;
+            font-weight: 500;
+        }
+        .table-container {
+            margin-top: 30px;
+        }
+        .table-container h3 {
+            margin-bottom: 20px;
+        }
+        .btn-back {
+            margin-bottom: 20px;
+        }
+        .no-data {
+            text-align: center;
+            padding: 30px;
+            color: #6c757d;
+        }
+        .no-data i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #dee2e6;
+        }
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .chart-card {
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary btn-back">
+            <i class="fas fa-arrow-left"></i> ダッシュボードに戻る
+        </a>
+        
+        <div class="card">
+            <div class="card-header">
+                <h2>学習統計</h2>
+                <p class="mb-0">あなたの学習活動の詳細な分析</p>
+            </div>
+            <div class="card-body">
+                <div class="stats-header">
+                    <h3>総合概要</h3>
+                    <p>これまでの学習活動の概要を表示しています。</p>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-book-open"></i>
+                        </div>
+                        <div class="stat-value">{{ total_sessions }}</div>
+                        <div class="stat-label">総学習セッション数</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-value">{{ total_time }}</div>
+                        <div class="stat-label">総学習時間（分）</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-percentage"></i>
+                        </div>
+                        <div class="stat-value">{{ '%.1f'|format(avg_score) }}%</div>
+                        <div class="stat-label">クイズ平均スコア</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-graduation-cap"></i>
+                        </div>
+                        <div class="stat-value">{{ subject_times|length }}</div>
+                        <div class="stat-label">学習科目数</div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="chart-container">
+                            <div class="chart-card">
+                                <h4 class="chart-title"><i class="fas fa-calendar-alt"></i> 日別学習時間</h4>
+                                
+                                {% if time_chart %}
+                                <img src="{{ time_chart }}" alt="日別学習時間" class="img-fluid">
+                                {% else %}
+                                <div class="no-data">
+                                    <i class="far fa-chart-bar"></i>
+                                    <p>データがありません。<br>学習セッションを記録すると、ここにグラフが表示されます。</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="chart-container">
+                            <div class="chart-card">
+                                <h4 class="chart-title"><i class="fas fa-pie-chart"></i> 科目別学習時間分布</h4>
+                                
+                                {% if subject_chart %}
+                                <img src="{{ subject_chart }}" alt="科目別学習時間分布" class="img-fluid">
+                                {% else %}
+                                <div class="no-data">
+                                    <i class="far fa-chart-pie"></i>
+                                    <p>データがありません。<br>複数の科目で学習すると、ここに分布図が表示されます。</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="table-container">
+                    <h3><i class="fas fa-book"></i> 科目別学習時間</h3>
+                    
+                    {% if subject_times %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>科目</th>
+                                    <th>学習時間（分）</th>
+                                    <th>割合</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for subject_name, time in subject_times %}
+                                <tr>
+                                    <td>{{ subject_name }}</td>
+                                    <td>{{ time }}</td>
+                                    <td>{{ '%.1f'|format((time / total_time) * 100) if total_time > 0 else 0 }}%</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> 学習データがありません。学習セッションを記録すると、ここに表が表示されます。
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="table-container">
+                    <h3><i class="fas fa-question-circle"></i> 科目別クイズスコア</h3>
+                    
+                    {% if subject_scores %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>科目</th>
+                                    <th>平均スコア</th>
+                                    <th>評価</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for subject_name, score in subject_scores %}
+                                <tr>
+                                    <td>{{ subject_name }}</td>
+                                    <td>{{ '%.1f'|format(score) }}%</td>
+                                    <td>
+                                        {% if score >= 90 %}
+                                        <span class="badge bg-success">素晴らしい</span>
+                                        {% elif score >= 70 %}
+                                        <span class="badge bg-primary">良好</span>
+                                        {% elif score >= 50 %}
+                                        <span class="badge bg-warning">平均的</span>
+                                        {% else %}
+                                        <span class="badge bg-danger">要復習</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> クイズのデータがありません。クイズを解くと、ここに結果が表示されます。
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

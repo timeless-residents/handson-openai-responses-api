@@ -1,0 +1,149 @@
+{% extends "layout.html" %}
+
+{% block title %}学習プラン{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">学習プラン</h1>
+    
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h5 mb-0">新しい学習プランを作成</h2>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('plans.index') }}" data-show-loading="true" data-loading-message="学習プランを生成中">
+                        {{ form.hidden_tag() }}
+                        <div class="mb-3">
+                            <label for="title" class="form-label">タイトル</label>
+                            {{ form.title(class="form-control", placeholder="例: Pythonプログラミング基礎") }}
+                            {% if form.title.errors %}
+                            <div class="text-danger">
+                                {% for error in form.title.errors %}
+                                <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
+                            <label for="subject" class="form-label">科目</label>
+                            {{ form.subject(class="form-select") }}
+                            {% if form.subject.errors %}
+                            <div class="text-danger">
+                                {% for error in form.subject.errors %}
+                                <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
+                            <label for="level" class="form-label">レベル</label>
+                            {{ form.level(class="form-select") }}
+                            {% if form.level.errors %}
+                            <div class="text-danger">
+                                {% for error in form.level.errors %}
+                                <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label">説明（任意）</label>
+                            {{ form.description(class="form-control", rows=3, placeholder="この学習プランの目標や内容を簡単に説明してください。") }}
+                            {% if form.description.errors %}
+                            <div class="text-danger">
+                                {% for error in form.description.errors %}
+                                <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="d-grid">
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h2 class="h5 mb-0">学習プランについて</h2>
+                </div>
+                <div class="card-body">
+                    <p>学習プランは、効率的に学習を進めるためのガイドとなります。AIが科目やレベルに応じた最適な学習プランを提案します。</p>
+                    <h3 class="h6">学習プランの特徴：</h3>
+                    <ul>
+                        <li>段階的に理解を深める順序で構成</li>
+                        <li>各ステップの詳細な説明と学習目標</li>
+                        <li>進捗状況を追跡して学習を管理</li>
+                        <li>完了したステップをチェックして達成感</li>
+                    </ul>
+                    <p class="mb-0">新しいプランを作成して、効果的な学習を始めましょう！</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <h2 class="mb-3">あなたの学習プラン</h2>
+    {% if plans|length > 0 %}
+    <div class="row">
+        {% for plan in plans %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="h5 mb-0">{{ plan.title }}</h3>
+                </div>
+                <div class="card-body">
+                    <div class="mb-2">
+                        <span class="badge bg-light text-dark me-1">{{ plan.subject.name }}</span>
+                        <span class="badge bg-secondary">
+                            {% if plan.level == 'beginner' %}初級
+                            {% elif plan.level == 'intermediate' %}中級
+                            {% else %}上級{% endif %}
+                        </span>
+                    </div>
+                    <p class="card-text">
+                        {% if plan.description %}
+                        {{ plan.description|truncate(100) }}
+                        {% else %}
+                        {{ plan.subject.name }}の{{ plan.level }}レベルの学習プランです。
+                        {% endif %}
+                    </p>
+                    
+                    {% set completed_items = plan.items|selectattr('completed', 'equalto', true)|list|length %}
+                    {% set total_items = plan.items|length %}
+                    {% set progress = (completed_items / total_items * 100)|int if total_items > 0 else 0 %}
+                    
+                    <div class="progress mb-2">
+                        <div class="progress-bar" role="progressbar" 
+                             style="width: {{ progress }}%" 
+                             aria-valuenow="{{ progress }}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="100">
+                            {{ progress }}%
+                        </div>
+                    </div>
+                    <small class="text-muted">{{ completed_items }} / {{ total_items }} 完了</small>
+                    <div class="d-grid gap-2 mt-3">
+                        <a href="{{ url_for('plans.view', plan_id=plan.id) }}" class="btn btn-outline-primary">
+                            <i class="bi bi-list-check"></i> 詳細を見る
+                        </a>
+                    </div>
+                </div>
+                <div class="card-footer text-muted">
+                    作成日: {{ plan.created_at.strftime('%Y年%m月%d日') }}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle me-2"></i>
+        まだ学習プランがありません。上のフォームから新しいプランを作成してください。
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

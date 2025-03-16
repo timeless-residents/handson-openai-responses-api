@@ -1,0 +1,70 @@
+{% extends "layout.html" %}
+
+{% block title %}学習アシスタント - ホーム{% endblock %}
+
+{% block content %}
+<div class="px-4 py-5 my-5 text-center">
+    <h1 class="display-5 fw-bold">AI学習アシスタント</h1>
+    <div class="col-lg-6 mx-auto">
+        <p class="lead mb-4">
+            AIを活用した個人向け学習支援ツールで、あなたの学習をより効果的に、より楽しくします。
+            パーソナライズされた学習コンテンツ、クイズ、フラッシュカードなどの機能を使って、
+            自分のペースで学びましょう。
+        </p>
+        <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+            <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg px-4 gap-3">今すぐ始める</a>
+            <a href="{{ url_for('auth.login') }}" class="btn btn-outline-secondary btn-lg px-4">ログイン</a>
+        </div>
+    </div>
+</div>
+
+<div class="container px-4 py-5">
+    <h2 class="pb-2 border-bottom">主な機能</h2>
+    <div class="row g-4 py-5 row-cols-1 row-cols-lg-3">
+        <div class="feature col">
+            <div class="feature-icon bg-primary bg-gradient">
+                <i class="bi bi-book text-white fs-2 p-3"></i>
+            </div>
+            <h3 class="mt-3">パーソナライズされた学習コンテンツ</h3>
+            <p>あなたのレベルと興味に合わせた学習コンテンツをAIが生成します。基礎から応用まで、段階的に学習できます。</p>
+        </div>
+        <div class="feature col">
+            <div class="feature-icon bg-primary bg-gradient">
+                <i class="bi bi-calendar-check text-white fs-2 p-3"></i>
+            </div>
+            <h3 class="mt-3">学習プランの作成</h3>
+            <p>目標達成のための学習プランをAIが提案。計画的に学習を進めることができます。</p>
+        </div>
+        <div class="feature col">
+            <div class="feature-icon bg-primary bg-gradient">
+                <i class="bi bi-patch-question text-white fs-2 p-3"></i>
+            </div>
+            <h3 class="mt-3">インタラクティブなクイズ</h3>
+            <p>学んだ内容を定着させるためのクイズをAIが自動生成。理解度を測定し、弱点を特定できます。</p>
+        </div>
+    </div>
+    <div class="row g-4 py-5 row-cols-1 row-cols-lg-3">
+        <div class="feature col">
+            <div class="feature-icon bg-primary bg-gradient">
+                <i class="bi bi-card-text text-white fs-2 p-3"></i>
+            </div>
+            <h3 class="mt-3">フラッシュカード学習</h3>
+            <p>重要な概念を効率的に記憶するためのフラッシュカードをAIが作成。繰り返し学習で知識を定着させます。</p>
+        </div>
+        <div class="feature col">
+            <div class="feature-icon bg-primary bg-gradient">
+                <i class="bi bi-chat-dots text-white fs-2 p-3"></i>
+            </div>
+            <h3 class="mt-3">AIチューター</h3>
+            <p>わからないことをいつでも質問できるAIチューター。丁寧でわかりやすい説明で学習をサポートします。</p>
+        </div>
+        <div class="feature col">
+            <div class="feature-icon bg-primary bg-gradient">
+                <i class="bi bi-graph-up text-white fs-2 p-3"></i>
+            </div>
+            <h3 class="mt-3">学習進捗の可視化</h3>
+            <p>学習時間や理解度の推移をグラフで確認。モチベーション維持と学習効率の向上に役立ちます。</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

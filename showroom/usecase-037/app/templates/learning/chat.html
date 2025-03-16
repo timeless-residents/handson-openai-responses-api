@@ -1,0 +1,176 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ conversation.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .chat-container {
+        height: 60vh;
+        overflow-y: auto;
+        background-color: #f8f9fa;
+        border-radius: 0.25rem;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .message {
+        margin-bottom: 1rem;
+        max-width: 80%;
+    }
+    
+    .message-user {
+        margin-left: auto;
+        background-color: #007bff;
+        color: white;
+        border-radius: 1rem 1rem 0 1rem;
+        padding: 0.8rem 1rem;
+    }
+    
+    .message-assistant {
+        margin-right: auto;
+        background-color: #e9ecef;
+        color: #212529;
+        border-radius: 1rem 1rem 1rem 0;
+        padding: 0.8rem 1rem;
+    }
+    
+    .message-content img {
+        max-width: 100%;
+        height: auto;
+    }
+    
+    .message-time {
+        font-size: 0.75rem;
+        margin-top: 0.25rem;
+        text-align: right;
+    }
+    
+    .message-user .message-time {
+        color: rgba(255, 255, 255, 0.8);
+    }
+    
+    .message-assistant .message-time {
+        color: #6c757d;
+    }
+    
+    .markdown-content pre {
+        background-color: #f8f9fa;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        overflow-x: auto;
+    }
+    
+    .markdown-content code {
+        color: #e83e8c;
+        background-color: #f8f9fa;
+        padding: 0.2rem 0.4rem;
+        border-radius: 0.25rem;
+    }
+    
+    .markdown-content blockquote {
+        border-left: 4px solid #ced4da;
+        padding-left: 1rem;
+        color: #6c757d;
+    }
+    
+    .markdown-content table {
+        width: 100%;
+        margin-bottom: 1rem;
+        border-collapse: collapse;
+    }
+    
+    .markdown-content th, .markdown-content td {
+        padding: 0.5rem;
+        border: 1px solid #dee2e6;
+    }
+    
+    .markdown-content th {
+        background-color: #f8f9fa;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>{{ conversation.title }}</h1>
+        <a href="{{ url_for('learning.conversation') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> 会話一覧に戻る
+        </a>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2 class="h5 mb-0">AIチューターとの会話</h2>
+                        {% if conversation.subject %}
+                        <small>科目: {{ conversation.subject.name }}{% if conversation.topic %} / トピック: {{ conversation.topic }}{% endif %}</small>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="chat-container" id="chat-container">
+                        {% if messages|length > 0 %}
+                            {% for message in messages %}
+                                <div class="message message-{{ message.role }}">
+                                    <div class="message-content">
+                                        {% if message.role == 'assistant' %}
+                                            <div class="markdown-content">{{ message.content_html|safe }}</div>
+                                        {% else %}
+                                            {{ message.content }}
+                                        {% endif %}
+                                    </div>
+                                    <div class="message-time">{{ message.created_at.strftime('%H:%M') }}</div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center text-muted my-5">
+                                <i class="bi bi-chat-dots fs-1"></i>
+                                <p class="mt-3">AIチューターに質問してみましょう。何でも聞いてください！</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <form method="POST" action="{{ url_for('learning.chat', conversation_id=conversation.id) }}" id="chat-form" data-show-loading="true" data-loading-message="AIが回答を考えています">
+                        <div class="input-group">
+                            <textarea class="form-control" name="content" id="message-input" rows="2" placeholder="メッセージを入力..." required></textarea>
+                            <button class="btn btn-success" type="submit">
+                                <i class="bi bi-send"></i> 送信
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // チャットコンテナを一番下にスクロール
+        const chatContainer = document.getElementById('chat-container');
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+        
+        // フォーム送信時に送信ボタンを無効化してローディングアイコンを表示
+        const chatForm = document.getElementById('chat-form');
+        const submitButton = chatForm.querySelector('button[type="submit"]');
+        
+        chatForm.addEventListener('submit', function() {
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 送信中...';
+        });
+        
+        // テキストエリアでCtrl+Enterキーを押した時にフォームを送信
+        const messageInput = document.getElementById('message-input');
+        messageInput.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                chatForm.submit();
+            }
+        });
+    });
+</script>
+{% endblock %}

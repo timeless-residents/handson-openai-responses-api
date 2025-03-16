@@ -1,0 +1,54 @@
+{% extends "layout.html" %}
+
+{% block title %}アカウント削除{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h2>アカウント削除</h2>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <h4 class="alert-heading">警告！</h4>
+                        <p>アカウントを削除すると、すべての学習データが完全に削除されます。この操作は取り消せません。</p>
+                        <p>削除されるデータ：</p>
+                        <ul>
+                            <li>プロフィール情報</li>
+                            <li>学習プラン</li>
+                            <li>クイズと結果</li>
+                            <li>フラッシュカード</li>
+                            <li>ノート</li>
+                            <li>学習セッション記録</li>
+                            <li>AI会話履歴</li>
+                        </ul>
+                    </div>
+                    
+                    <form method="POST" action="{{ url_for('auth.delete_account') }}">
+                        <div class="form-group mb-4">
+                            <label for="password">現在のパスワードを入力して確認</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        
+                        <div class="form-group mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="confirm" required>
+                                <label class="form-check-label" for="confirm">
+                                    アカウントとすべてのデータを削除することを確認します
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-danger" onclick="return confirm('本当にアカウントを削除しますか？この操作は取り消せません。')">
+                            アカウントを削除する
+                        </button>
+                        <a href="{{ url_for('dashboard.dashboard') }}" class="btn btn-secondary ml-2">キャンセル</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

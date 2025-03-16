@@ -1,0 +1,170 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ note.title }} - 編集{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>ノート編集</h1>
+        <a href="{{ url_for('notes.view', note_id=note.id) }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> ノート表示に戻る
+        </a>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h5 mb-0">ノートを編集</h2>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('notes.edit', note_id=note.id) }}">
+                        {{ form.hidden_tag() }}
+                        <div class="mb-3">
+                            <label for="title" class="form-label">タイトル</label>
+                            {{ form.title(class="form-control") }}
+                            {% if form.title.errors %}
+                            <div class="text-danger">
+                                {% for error in form.title.errors %}
+                                <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
+                            <label for="subject" class="form-label">科目</label>
+                            {{ form.subject(class="form-select") }}
+                            {% if form.subject.errors %}
+                            <div class="text-danger">
+                                {% for error in form.subject.errors %}
+                                <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
+                            <label for="topic" class="form-label">トピック</label>
+                            {{ form.topic(class="form-control") }}
+                            {% if form.topic.errors %}
+                            <div class="text-danger">
+                                {% for error in form.topic.errors %}
+                                <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
+                            <label for="content" class="form-label">内容</label>
+                            <div class="d-flex justify-content-end mb-2">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" id="toggle-preview">
+                                    <i class="bi bi-eye"></i> プレビュー
+                                </button>
+                            </div>
+                            {{ form.content(class="form-control", rows="15", id="note-content") }}
+                            {% if form.content.errors %}
+                            <div class="text-danger">
+                                {% for error in form.content.errors %}
+                                <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            <div class="form-text">
+                                Markdown形式がサポートされています。見出し(#)、リスト(-)、コードブロック(```)などが使えます。
+                            </div>
+                        </div>
+                        <div id="preview-container" class="mb-3 p-3 border rounded bg-light" style="display: none;">
+                            <h3 class="h6 mb-2">プレビュー:</h3>
+                            <div id="markdown-preview"></div>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('notes.view', note_id=note.id) }}" class="btn btn-outline-secondary">
+                                キャンセル
+                            </a>
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h2 class="h5 mb-0">Markdown記法ガイド</h2>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h3 class="h6">見出し</h3>
+                        <pre class="bg-light p-2 rounded"><code># 見出し1
+## 見出し2
+### 見出し3</code></pre>
+                    </div>
+                    <div class="mb-3">
+                        <h3 class="h6">リスト</h3>
+                        <pre class="bg-light p-2 rounded"><code>- 項目1
+- 項目2
+  - サブ項目
+  
+1. 番号付き項目1
+2. 番号付き項目2</code></pre>
+                    </div>
+                    <div class="mb-3">
+                        <h3 class="h6">強調</h3>
+                        <pre class="bg-light p-2 rounded"><code>*斜体*
+**太字**
+***太字かつ斜体***</code></pre>
+                    </div>
+                    <div class="mb-3">
+                        <h3 class="h6">リンク</h3>
+                        <pre class="bg-light p-2 rounded"><code>[リンクテキスト](URL)</code></pre>
+                    </div>
+                    <div class="mb-3">
+                        <h3 class="h6">コードブロック</h3>
+                        <pre class="bg-light p-2 rounded"><code>```python
+def hello():
+    print("Hello World!")
+```</code></pre>
+                    </div>
+                    <div class="mb-3">
+                        <h3 class="h6">引用</h3>
+                        <pre class="bg-light p-2 rounded"><code>> これは引用文です。
+> 複数行にも対応しています。</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const noteContent = document.getElementById('note-content');
+        const previewButton = document.getElementById('toggle-preview');
+        const previewContainer = document.getElementById('preview-container');
+        const markdownPreview = document.getElementById('markdown-preview');
+        
+        // プレビューボタンのクリックイベント
+        previewButton.addEventListener('click', function() {
+            if (previewContainer.style.display === 'none') {
+                // プレビューを表示
+                markdownPreview.innerHTML = marked.parse(noteContent.value);
+                previewContainer.style.display = 'block';
+                previewButton.innerHTML = '<i class="bi bi-eye-slash"></i> 編集に戻る';
+            } else {
+                // プレビューを非表示
+                previewContainer.style.display = 'none';
+                previewButton.innerHTML = '<i class="bi bi-eye"></i> プレビュー';
+            }
+        });
+        
+        // 内容が変更されたらプレビューを更新
+        noteContent.addEventListener('input', function() {
+            if (previewContainer.style.display !== 'none') {
+                markdownPreview.innerHTML = marked.parse(noteContent.value);
+            }
+        });
+    });
+</script>
+{% endblock %}

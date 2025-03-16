@@ -1,0 +1,164 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ quiz.title }} - 結果{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>{{ quiz.title }} - 結果</h1>
+        <a href="{{ url_for('quizzes.index') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> クイズ一覧に戻る
+        </a>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h2 class="h5 mb-0">結果サマリー</h2>
+        </div>
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-4 text-center">
+                    <div class="display-1 mb-2 {% if quiz.score >= 80 %}text-success{% elif quiz.score >= 60 %}text-warning{% else %}text-danger{% endif %}">
+                        {{ quiz.score|round|int }}%
+                    </div>
+                    <p class="mb-0">
+                        {% if quiz.score >= 80 %}
+                        <span class="badge bg-success">優秀</span>
+                        {% elif quiz.score >= 60 %}
+                        <span class="badge bg-warning text-dark">良好</span>
+                        {% else %}
+                        <span class="badge bg-danger">要復習</span>
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="col-md-8">
+                    <div class="progress mb-3" style="height: 25px;">
+                        <div class="progress-bar {% if quiz.score >= 80 %}bg-success{% elif quiz.score >= 60 %}bg-warning{% else %}bg-danger{% endif %}" 
+                             role="progressbar" 
+                             style="width: {{ quiz.score|round|int }}%;" 
+                             aria-valuenow="{{ quiz.score|round|int }}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="100">
+                            {{ quiz.score|round|int }}%
+                        </div>
+                    </div>
+                    
+                    <div class="row text-center">
+                        <div class="col">
+                            <h3 class="h6">科目</h3>
+                            <p>{{ quiz.subject.name }}</p>
+                        </div>
+                        <div class="col">
+                            <h3 class="h6">トピック</h3>
+                            <p>{{ quiz.topic }}</p>
+                        </div>
+                        <div class="col">
+                            <h3 class="h6">レベル</h3>
+                            <p>
+                                {% if quiz.level == 'beginner' %}初級
+                                {% elif quiz.level == 'intermediate' %}中級
+                                {% else %}上級{% endif %}
+                            </p>
+                        </div>
+                        <div class="col">
+                            <h3 class="h6">完了日</h3>
+                            <p>{{ quiz.completed_at.strftime('%Y/%m/%d') }}</p>
+                        </div>
+                    </div>
+                    
+                    <p class="mt-3 mb-0">
+                        {% set correct_count = questions|selectattr('is_correct', 'equalto', true)|list|length %}
+                        {{ correct_count }}問正解 / {{ questions|length }}問中
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <h2 class="mb-3">問題と解答</h2>
+    
+    {% for question in questions %}
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center 
+                    {% if question.is_correct %}bg-success text-white{% else %}bg-danger text-white{% endif %}">
+            <h3 class="h5 mb-0">問題 {{ loop.index }}</h3>
+            <span class="badge bg-light {% if question.is_correct %}text-success{% else %}text-danger{% endif %}">
+                {% if question.is_correct %}正解{% else %}不正解{% endif %}
+            </span>
+        </div>
+        <div class="card-body">
+            <p class="card-text">{{ question.question }}</p>
+            
+            {% if question.options_list|length > 0 %}
+            <div class="list-group mb-3">
+                {% for option in question.options_list %}
+                <div class="list-group-item 
+                        {% if option == question.answer %}list-group-item-success{% endif %}
+                        {% if option == question.user_answer and option != question.answer %}list-group-item-danger{% endif %}">
+                    <div class="d-flex align-items-center">
+                        <div class="me-2">
+                            {% if option == question.answer %}
+                            <i class="bi bi-check-circle-fill text-success"></i>
+                            {% elif option == question.user_answer %}
+                            <i class="bi bi-x-circle-fill text-danger"></i>
+                            {% endif %}
+                        </div>
+                        <div>{{ option }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            <h4 class="h6 mb-0">あなたの解答</h4>
+                        </div>
+                        <div class="card-body">
+                            <p class="{% if question.is_correct %}text-success{% else %}text-danger{% endif %}">
+                                {{ question.user_answer or '(未回答)' }}
+                                {% if question.is_correct %}
+                                <i class="bi bi-check-circle-fill text-success ms-1"></i>
+                                {% else %}
+                                <i class="bi bi-x-circle-fill text-danger ms-1"></i>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            <h4 class="h6 mb-0">正解</h4>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-success">{{ question.answer }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="card bg-light">
+                <div class="card-header">
+                    <h4 class="h6 mb-0">解説</h4>
+                </div>
+                <div class="card-body">
+                    <p class="card-text mb-0">{{ question.explanation }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    
+    <div class="text-center mb-5">
+        <a href="{{ url_for('quizzes.index') }}" class="btn btn-primary mx-2">
+            <i class="bi bi-list"></i> 別のクイズを受ける
+        </a>
+        <a href="{{ url_for('learning.select_subject') }}" class="btn btn-success mx-2">
+            <i class="bi bi-book"></i> 学習を続ける
+        </a>
+    </div>
+</div>
+{% endblock %}

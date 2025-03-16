@@ -1,0 +1,144 @@
+{% extends "layout.html" %}
+
+{% block title %}フラッシュカード{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">フラッシュカード</h1>
+    
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h5 mb-0">フラッシュカードを作成</h2>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('flashcards.index') }}" data-show-loading="true" data-loading-message="フラッシュカードを生成中">
+                        {{ form.hidden_tag() }}
+                        <div class="mb-3">
+                            <label for="subject" class="form-label">科目</label>
+                            {{ form.subject(class="form-select") }}
+                            {% if form.subject.errors %}
+                            <div class="text-danger">
+                                {% for error in form.subject.errors %}
+                                <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
+                            <label for="topic" class="form-label">トピック</label>
+                            {{ form.topic(class="form-control", placeholder="例: 変数と型") }}
+                            {% if form.topic.errors %}
+                            <div class="text-danger">
+                                {% for error in form.topic.errors %}
+                                <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
+                            <label for="level" class="form-label">レベル</label>
+                            {{ form.level(class="form-select") }}
+                            {% if form.level.errors %}
+                            <div class="text-danger">
+                                {% for error in form.level.errors %}
+                                <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
+                            <label for="num_cards" class="form-label">カード数</label>
+                            {{ form.num_cards(class="form-control", type="number", min="5", max="20") }}
+                            {% if form.num_cards.errors %}
+                            <div class="text-danger">
+                                {% for error in form.num_cards.errors %}
+                                <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            <div class="form-text">5〜20の範囲で指定してください。</div>
+                        </div>
+                        <div class="d-grid">
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                    </form>
+                    <div class="text-center mt-3">
+                        <a href="{{ url_for('flashcards.create_manual') }}" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-plus-circle"></i> 手動でカードを作成
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h2 class="h5 mb-0">フラッシュカードについて</h2>
+                </div>
+                <div class="card-body">
+                    <p>フラッシュカードは、効率的に記憶を定着させるための学習ツールです。AIが科目、トピック、レベルに応じたカードを生成します。</p>
+                    <h3 class="h6">フラッシュカードの特徴：</h3>
+                    <ul>
+                        <li>重要な概念と説明がペアになったカード形式</li>
+                        <li>繰り返し学習することで長期記憶への定着を促進</li>
+                        <li>自己評価機能で苦手な項目を重点的に復習</li>
+                        <li>科目やトピックごとに整理して効率的に学習</li>
+                    </ul>
+                    <div class="alert alert-info">
+                        <i class="bi bi-lightbulb"></i> ヒント：フラッシュカードは短い時間で繰り返し学習するのが効果的です。通学中や休憩時間などの隙間時間を活用しましょう。
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>フラッシュカードライブラリ</h2>
+        <a href="{{ url_for('flashcards.library') }}" class="btn btn-outline-primary">
+            <i class="bi bi-collection"></i> ライブラリを見る
+        </a>
+    </div>
+    
+    <div class="card">
+        <div class="card-body">
+            <div class="row text-center">
+                <div class="col-md-4 mb-3">
+                    <div class="d-flex flex-column align-items-center">
+                        <div class="display-4 text-primary mb-2">
+                            <i class="bi bi-card-text"></i>
+                        </div>
+                        <h3 class="h5">作成</h3>
+                        <p class="small">AIが科目とトピックに基づいて自動的にフラッシュカードを生成します。</p>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="d-flex flex-column align-items-center">
+                        <div class="display-4 text-success mb-2">
+                            <i class="bi bi-arrow-repeat"></i>
+                        </div>
+                        <h3 class="h5">学習</h3>
+                        <p class="small">カードを繰り返し復習して、知識を定着させます。</p>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="d-flex flex-column align-items-center">
+                        <div class="display-4 text-warning mb-2">
+                            <i class="bi bi-graph-up"></i>
+                        </div>
+                        <h3 class="h5">評価</h3>
+                        <p class="small">理解度に応じて各カードを評価し、効率的に学習を進めます。</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-3">
+                <a href="{{ url_for('flashcards.study_selection') }}" class="btn btn-success">
+                    <i class="bi bi-play-fill"></i> 学習を始める
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

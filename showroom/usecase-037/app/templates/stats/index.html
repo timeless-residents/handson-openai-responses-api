@@ -1,0 +1,285 @@
+{% extends "layout.html" %}
+
+{% block title %}学習統計{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">学習統計</h1>
+    
+    <div class="row mb-4">
+        <!-- 統計カード -->
+        <div class="col-md-3 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h5 mb-0">総学習時間</h2>
+                </div>
+                <div class="card-body text-center">
+                    <div class="display-4 mb-3">{{ stats.study_time.total }}分</div>
+                    <div class="small text-muted">過去30日間: {{ stats.study_time.periods.month }}分</div>
+                    <div class="small text-muted">過去7日間: {{ stats.study_time.periods.week }}分</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-success text-white">
+                    <h2 class="h5 mb-0">クイズ成績</h2>
+                </div>
+                <div class="card-body text-center">
+                    <div class="display-4 mb-3">{{ stats.quizzes.avg_score }}%</div>
+                    <div class="small text-muted">完了数: {{ stats.quizzes.completed }} / {{ stats.quizzes.total }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-info text-white">
+                    <h2 class="h5 mb-0">ノート</h2>
+                </div>
+                <div class="card-body text-center">
+                    <div class="display-4 mb-3">{{ stats.notes.total }}</div>
+                    <div class="small text-muted">過去30日間: {{ stats.notes.periods.month }}</div>
+                    <div class="small text-muted">過去7日間: {{ stats.notes.periods.week }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-warning text-dark">
+                    <h2 class="h5 mb-0">フラッシュカード</h2>
+                </div>
+                <div class="card-body text-center">
+                    <div class="display-4 mb-3">{{ stats.flashcards.total }}</div>
+                    <div class="small text-muted">学習済み: {{ stats.flashcards.reviewed }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h5 mb-0">学習時間の推移</h2>
+                </div>
+                <div class="card-body">
+                    <div class="btn-group btn-group-sm mb-3">
+                        <button type="button" class="btn btn-outline-primary active" data-period="week" onclick="changePeriod('week')">週</button>
+                        <button type="button" class="btn btn-outline-primary" data-period="month" onclick="changePeriod('month')">月</button>
+                        <button type="button" class="btn btn-outline-primary" data-period="year" onclick="changePeriod('year')">年</button>
+                    </div>
+                    <div class="chart-container" style="position: relative; height:250px;">
+                        <canvas id="studyTimeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h2 class="h5 mb-0">科目別学習時間</h2>
+                </div>
+                <div class="card-body">
+                    {% if subject_time_chart %}
+                        <img src="{{ subject_time_chart }}" alt="科目別学習時間" class="img-fluid">
+                    {% else %}
+                        <div class="text-center text-muted my-5">
+                            <i class="bi bi-graph-up" style="font-size: 3rem;"></i>
+                            <p class="mt-3">学習データがまだありません。</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h2 class="h5 mb-0">学習強度マップ</h2>
+                </div>
+                <div class="card-body">
+                    {% if intensity_map %}
+                        <img src="{{ intensity_map }}" alt="学習強度マップ" class="img-fluid">
+                    {% else %}
+                        <div class="text-center text-muted my-5">
+                            <i class="bi bi-calendar-week" style="font-size: 3rem;"></i>
+                            <p class="mt-3">学習データがまだありません。</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h2 class="h5 mb-0">クイズスコアの推移</h2>
+                </div>
+                <div class="card-body">
+                    {% if quiz_score_chart %}
+                        <img src="{{ quiz_score_chart }}" alt="クイズスコアの推移" class="img-fluid">
+                    {% else %}
+                        <div class="text-center text-muted my-5">
+                            <i class="bi bi-patch-question" style="font-size: 3rem;"></i>
+                            <p class="mt-3">クイズのデータがまだありません。</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-12 mb-4">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h2 class="h5 mb-0">学習アドバイス</h2>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="d-flex">
+                                <div class="flex-shrink-0">
+                                    <i class="bi bi-lightning-charge text-warning fs-2 me-3"></i>
+                                </div>
+                                <div>
+                                    <h3 class="h6">学習の継続性を維持しましょう</h3>
+                                    <p class="small">定期的な学習が効果的です。毎日少しずつ進めることで記憶の定着率が高まります。</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-flex">
+                                <div class="flex-shrink-0">
+                                    <i class="bi bi-graph-up-arrow text-success fs-2 me-3"></i>
+                                </div>
+                                <div>
+                                    <h3 class="h6">苦手な分野に集中しましょう</h3>
+                                    <p class="small">クイズの成績が低い分野に時間を割くことで、効率的に学習を進められます。</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-flex">
+                                <div class="flex-shrink-0">
+                                    <i class="bi bi-stars text-primary fs-2 me-3"></i>
+                                </div>
+                                <div>
+                                    <h3 class="h6">学習方法を組み合わせましょう</h3>
+                                    <p class="small">ノート作成、クイズ、フラッシュカードなど複数の学習方法を組み合わせると効果的です。</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    let studyTimeChart = null;
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        // 初期表示は週間データ
+        fetchStudyTimeData('week');
+        
+        // 期間切り替えボタンの設定
+        document.querySelectorAll('[data-period]').forEach(button => {
+            button.addEventListener('click', function() {
+                // アクティブなボタンを切り替え
+                document.querySelectorAll('[data-period]').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                this.classList.add('active');
+                
+                // データを取得して表示
+                fetchStudyTimeData(this.dataset.period);
+            });
+        });
+    });
+    
+    function fetchStudyTimeData(period) {
+        fetch(`/stats/api/study_time?period=${period}`)
+            .then(response => response.json())
+            .then(data => {
+                renderStudyTimeChart(data.dates, data.durations, period);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    }
+    
+    function renderStudyTimeChart(dates, durations, period) {
+        const ctx = document.getElementById('studyTimeChart').getContext('2d');
+        
+        // 既存のチャートを破棄
+        if (studyTimeChart) {
+            studyTimeChart.destroy();
+        }
+        
+        // タイトルの設定
+        let titleText = '';
+        switch(period) {
+            case 'week':
+                titleText = '過去7日間の学習時間（分）';
+                break;
+            case 'month':
+                titleText = '過去30日間の学習時間（分）';
+                break;
+            case 'year':
+                titleText = '過去1年間の学習時間（分）';
+                break;
+            default:
+                titleText = '学習時間（分）';
+        }
+        
+        // 新しいチャートを作成
+        studyTimeChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: dates,
+                datasets: [{
+                    label: '学習時間（分）',
+                    data: durations,
+                    backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: titleText
+                    },
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: '時間（分）'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: '日付'
+                        }
+                    }
+                }
+            }
+        });
+    }
+</script>
+{% endblock %}

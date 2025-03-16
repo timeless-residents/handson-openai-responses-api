@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>質問応答 - 個人向け学習アシスタント</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/styles/github.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .container {
+            max-width: 1140px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            border: none;
+        }
+        .chat-container {
+            height: 600px;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-sidebar {
+            background-color: #f1f3f4;
+            border-radius: 10px;
+            padding: 15px;
+            height: 100%;
+            overflow-y: auto;
+        }
+        .chat-main {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .chat-header {
+            background-color: #4285f4;
+            color: white;
+            padding: 15px;
+            border-radius: 10px 10px 0 0;
+        }
+        .chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 15px;
+            background-color: white;
+            border-left: 1px solid #e0e0e0;
+            border-right: 1px solid #e0e0e0;
+        }
+        .chat-input {
+            padding: 15px;
+            background-color: white;
+            border-radius: 0 0 10px 10px;
+            border: 1px solid #e0e0e0;
+            border-top: none;
+        }
+        .conversation-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .conversation-item {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .conversation-item:hover {
+            background-color: #e8eaed;
+        }
+        .conversation-item.active {
+            background-color: #d2e3fc;
+            font-weight: bold;
+        }
+        .conversation-item .title {
+            font-weight: 500;
+            margin-bottom: 3px;
+        }
+        .conversation-item .date {
+            font-size: 0.8rem;
+            color: #5f6368;
+        }
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+        .message-user {
+            align-items: flex-end;
+        }
+        .message-assistant {
+            align-items: flex-start;
+        }
+        .message-content {
+            padding: 10px 15px;
+            border-radius: 18px;
+            max-width: 80%;
+        }
+        .message-user .message-content {
+            background-color: #4285f4;
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+        .message-assistant .message-content {
+            background-color: #f1f3f4;
+            color: #202124;
+            border-bottom-left-radius: 5px;
+        }
+        .message-time {
+            font-size: 0.75rem;
+            color: #5f6368;
+            margin-top: 5px;
+        }
+        .new-conversation-btn {
+            width: 100%;
+            margin-bottom: 15px;
+        }
+        .typing-indicator {
+            display: none;
+            padding: 10px 15px;
+            background-color: #f1f3f4;
+            border-radius: 18px;
+            margin-bottom: 15px;
+            width: fit-content;
+        }
+        .typing-indicator span {
+            height: 10px;
+            width: 10px;
+            float: left;
+            margin: 0 1px;
+            background-color: #9E9E9E;
+            display: block;
+            border-radius: 50%;
+            opacity: 0.4;
+        }
+        .typing-indicator span:nth-of-type(1) {
+            animation: 1s blink infinite 0.3333s;
+        }
+        .typing-indicator span:nth-of-type(2) {
+            animation: 1s blink infinite 0.6666s;
+        }
+        .typing-indicator span:nth-of-type(3) {
+            animation: 1s blink infinite 0.9999s;
+        }
+        @keyframes blink {
+            50% {
+                opacity: 1;
+            }
+        }
+        .message-content pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        .message-content code {
+            font-family: 'Courier New', Courier, monospace;
+        }
+        .message-content a {
+            color: inherit;
+            text-decoration: underline;
+        }
+        .message-content ul, .message-content ol {
+            padding-left: 20px;
+        }
+        .btn-back {
+            margin-bottom: 20px;
+        }
+        @media (max-width: 768px) {
+            .chat-container {
+                flex-direction: column;
+                height: auto;
+            }
+            .chat-sidebar {
+                height: auto;
+                margin-bottom: 15px;
+            }
+            .message-content {
+                max-width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary btn-back">
+            <i class="fas fa-arrow-left"></i> ダッシュボードに戻る
+        </a>
+        
+        <div class="card">
+            <div class="card-body p-0">
+                <div class="row g-0 chat-container">
+                    <div class="col-md-3 chat-sidebar">
+                        <button class="btn btn-primary new-conversation-btn" onclick="startNewConversation()">
+                            <i class="fas fa-plus"></i> 新しい会話
+                        </button>
+                        
+                        <h5>過去の会話</h5>
+                        <ul class="conversation-list">
+                            {% for conv in conversations %}
+                            <li class="conversation-item {% if current_conversation and current_conversation.id == conv.id %}active{% endif %}" 
+                                onclick="window.location.href='{{ url_for('ask_question', conversation_id=conv.id) }}'">
+                                <div class="title">{{ conv.title }}</div>
+                                <div class="date">{{ conv.updated_at.strftime('%Y/%m/%d %H:%M') }}</div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    
+                    <div class="col-md-9 chat-main">
+                        <div class="chat-header">
+                            <h4>{% if subject %}{{ subject.name }} ({{ level }}){% else %}一般的な質問{% endif %}</h4>
+                            <div>{% if current_conversation %}{{ current_conversation.title }}{% else %}新しい会話{% endif %}</div>
+                        </div>
+                        
+                        <div class="chat-messages" id="chat-messages">
+                            {% if messages %}
+                                {% for message in messages %}
+                                <div class="message message-{{ message.role }}">
+                                    <div class="message-content">{{ message.content|safe }}</div>
+                                    <div class="message-time">{{ message.created_at.strftime('%H:%M') }}</div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="text-center p-5">
+                                    <i class="fas fa-comments fa-3x mb-3 text-muted"></i>
+                                    <p>質問をして会話を始めましょう。</p>
+                                </div>
+                            {% endif %}
+                            
+                            <div class="typing-indicator" id="typing-indicator">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+                        </div>
+                        
+                        <div class="chat-input">
+                            <form id="question-form" method="post">
+                                <div class="input-group">
+                                    <input type="hidden" name="conversation_id" id="conversation_id" value="{% if current_conversation %}{{ current_conversation.id }}{% else %}new{% endif %}">
+                                    <input type="text" name="question" id="question" class="form-control" placeholder="質問を入力してください..." required>
+                                    <button class="btn btn-primary" type="submit">
+                                        <i class="fas fa-paper-plane"></i> 送信
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/lib/highlight.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            scrollToBottom();
+            
+            // コードのシンタックスハイライト
+            document.querySelectorAll('pre code').forEach((block) => {
+                hljs.highlightBlock(block);
+            });
+            
+            // フォーム送信
+            $('#question-form').submit(function(e) {
+                e.preventDefault();
+                
+                const question = $('#question').val();
+                const conversationId = $('#conversation_id').val();
+                
+                if (!question) return;
+                
+                // ユーザーメッセージを表示
+                appendMessage('user', question);
+                
+                // 入力フィールドをクリア
+                $('#question').val('');
+                
+                // 入力中インジケーターを表示
+                $('#typing-indicator').show();
+                scrollToBottom();
+                
+                // APIリクエスト
+                $.ajax({
+                    url: "{{ url_for('ask_question') }}",
+                    type: 'POST',
+                    data: {
+                        question: question,
+                        conversation_id: conversationId
+                    },
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    success: function(data) {
+                        // 入力中インジケーターを非表示
+                        $('#typing-indicator').hide();
+                        
+                        // レスポンスを表示
+                        appendMessage('assistant', data.response);
+                        
+                        // 会話IDを更新
+                        $('#conversation_id').val(data.id);
+                        
+                        // URLを更新（リロードなし）
+                        window.history.pushState({}, '', "{{ url_for('ask_question') }}?conversation_id=" + data.id);
+                    },
+                    error: function() {
+                        // 入力中インジケーターを非表示
+                        $('#typing-indicator').hide();
+                        
+                        appendMessage('assistant', 'エラーが発生しました。もう一度お試しください。');
+                    }
+                });
+            });
+        });
+        
+        function appendMessage(role, content) {
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            // Markdownをレンダリング（必要に応じて）
+            content = marked.parse(content);
+            
+            const messageHtml = `
+                <div class="message message-${role}">
+                    <div class="message-content">${content}</div>
+                    <div class="message-time">${time}</div>
+                </div>
+            `;
+            
+            $('#chat-messages').append(messageHtml);
+            
+            // コードのシンタックスハイライト
+            document.querySelectorAll('pre code').forEach((block) => {
+                hljs.highlightBlock(block);
+            });
+            
+            scrollToBottom();
+        }
+        
+        function scrollToBottom() {
+            const chatMessages = document.getElementById('chat-messages');
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        function startNewConversation() {
+            $('#conversation_id').val('new');
+            $('#chat-messages').html(`
+                <div class="text-center p-5">
+                    <i class="fas fa-comments fa-3x mb-3 text-muted"></i>
+                    <p>質問をして会話を始めましょう。</p>
+                </div>
+            `);
+            window.history.pushState({}, '', "{{ url_for('ask_question') }}");
+        }
+    </script>
+</body>
+</html>

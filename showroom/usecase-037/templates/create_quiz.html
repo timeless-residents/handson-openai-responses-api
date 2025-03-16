@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>クイズ作成 - 個人向け学習アシスタント</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .container {
+            max-width: 1140px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            border: none;
+        }
+        .card-header {
+            background-color: #4285f4;
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+            padding: 15px 20px;
+        }
+        .card-body {
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .illustration {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .illustration i {
+            font-size: 6rem;
+            color: #4285f4;
+            margin-bottom: 15px;
+        }
+        .quiz-benefits {
+            background-color: #e8f5e9;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .quiz-benefits h4 {
+            color: #2e7d32;
+            margin-bottom: 15px;
+        }
+        .quiz-benefits ul {
+            padding-left: 20px;
+        }
+        .quiz-benefits li {
+            margin-bottom: 10px;
+        }
+        .btn-back {
+            margin-bottom: 20px;
+        }
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            .illustration i {
+                font-size: 4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary btn-back">
+            <i class="fas fa-arrow-left"></i> ダッシュボードに戻る
+        </a>
+        
+        <div class="card">
+            <div class="card-header">
+                <h3>クイズ作成</h3>
+                <p class="mb-0">AIを使って学習内容を確認するためのクイズを生成します</p>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <form method="post">
+                            {{ form.hidden_tag() }}
+                            
+                            <div class="form-group">
+                                <label for="subject">{{ form.subject.label }}</label>
+                                {{ form.subject(class="form-select") }}
+                                {% if form.subject.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.subject.errors %}
+                                    <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="topic">{{ form.topic.label }}</label>
+                                {{ form.topic(class="form-control", placeholder="例: 微分方程式の解法") }}
+                                {% if form.topic.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.topic.errors %}
+                                    <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="level">{{ form.level.label }}</label>
+                                {{ form.level(class="form-select") }}
+                                {% if form.level.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.level.errors %}
+                                    <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="question_count">{{ form.question_count.label }}</label>
+                                {{ form.question_count(class="form-select") }}
+                                {% if form.question_count.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.question_count.errors %}
+                                    <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="form-group">
+                                {{ form.submit(class="btn btn-primary w-100") }}
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="illustration">
+                            <i class="fas fa-question-circle"></i>
+                            <h4>知識の確認でさらなる成長を</h4>
+                            <p>クイズを解くことで学習内容の理解度を測り、知識の定着を促進します。</p>
+                        </div>
+                        
+                        <div class="quiz-benefits">
+                            <h4><i class="fas fa-lightbulb"></i> クイズ学習のメリット</h4>
+                            <ul>
+                                <li><strong>アクティブリコール：</strong>情報を思い出す行為が記憶の定着を促進します。</li>
+                                <li><strong>理解度の確認：</strong>学習内容の理解度を客観的に評価できます。</li>
+                                <li><strong>知識のギャップの発見：</strong>弱点を特定し、効率的に学習を進められます。</li>
+                                <li><strong>モチベーション向上：</strong>正解することで達成感を得られ、学習意欲が高まります。</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

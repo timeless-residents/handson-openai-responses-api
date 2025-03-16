@@ -1,0 +1,174 @@
+{% extends "layout.html" %}
+
+{% block title %}アカウント設定{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">アカウント設定</h1>
+    
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h5 mb-0">アカウント情報</h2>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div class="avatar-placeholder bg-light rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width: 100px; height: 100px;">
+                            <i class="bi bi-person-circle text-primary" style="font-size: 64px;"></i>
+                        </div>
+                        <h3 class="h5 mt-3">{{ current_user.username }}</h3>
+                        <p class="text-muted">{{ current_user.email }}</p>
+                    </div>
+                    
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>ユーザー名</span>
+                            <span>{{ current_user.username }}</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>メールアドレス</span>
+                            <span>{{ current_user.email }}</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>アカウント作成日</span>
+                            <span>{{ current_user.created_at.strftime('%Y年%m月%d日') }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header bg-danger text-white">
+                    <h2 class="h5 mb-0">危険区域</h2>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">これらの操作は元に戻せません。注意して行ってください。</p>
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('dashboard.reset_data') }}" class="btn btn-outline-warning">
+                            <i class="bi bi-trash"></i> データをリセット
+                        </a>
+                        <a href="{{ url_for('auth.delete_account') }}" class="btn btn-outline-danger">
+                            <i class="bi bi-exclamation-triangle"></i> アカウントを削除
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h5 mb-0">アカウント統計</h2>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 text-center mb-3">
+                            <div class="d-flex flex-column align-items-center">
+                                <div class="bg-light rounded-circle d-flex align-items-center justify-content-center mb-2" style="width: 60px; height: 60px;">
+                                    <i class="bi bi-book text-primary fs-3"></i>
+                                </div>
+                                <h3 class="h6">ノート</h3>
+                                <p class="display-6">{{ current_user.notes|length }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 text-center mb-3">
+                            <div class="d-flex flex-column align-items-center">
+                                <div class="bg-light rounded-circle d-flex align-items-center justify-content-center mb-2" style="width: 60px; height: 60px;">
+                                    <i class="bi bi-patch-question text-warning fs-3"></i>
+                                </div>
+                                <h3 class="h6">クイズ</h3>
+                                <p class="display-6">{{ current_user.quizzes|length }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 text-center mb-3">
+                            <div class="d-flex flex-column align-items-center">
+                                <div class="bg-light rounded-circle d-flex align-items-center justify-content-center mb-2" style="width: 60px; height: 60px;">
+                                    <i class="bi bi-card-text text-success fs-3"></i>
+                                </div>
+                                <h3 class="h6">フラッシュカード</h3>
+                                <p class="display-6">{{ current_user.flashcards|length }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 text-center mb-3">
+                            <div class="d-flex flex-column align-items-center">
+                                <div class="bg-light rounded-circle d-flex align-items-center justify-content-center mb-2" style="width: 60px; height: 60px;">
+                                    <i class="bi bi-calendar-check text-info fs-3"></i>
+                                </div>
+                                <h3 class="h6">学習プラン</h3>
+                                <p class="display-6">{{ current_user.learning_plans|length }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h5 mb-0">プロフィール設定</h2>
+                </div>
+                <div class="card-body">
+                    <form>
+                        <div class="mb-3">
+                            <label for="username" class="form-label">ユーザー名</label>
+                            <input type="text" class="form-control" id="username" value="{{ current_user.username }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">メールアドレス</label>
+                            <input type="email" class="form-control" id="email" value="{{ current_user.email }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">新しいパスワード</label>
+                            <input type="password" class="form-control" id="password" placeholder="変更する場合のみ入力">
+                        </div>
+                        <div class="mb-3">
+                            <label for="password_confirm" class="form-label">パスワード（確認）</label>
+                            <input type="password" class="form-control" id="password_confirm" placeholder="変更する場合のみ入力">
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary" disabled>
+                                <i class="bi bi-check-circle"></i> 変更を保存
+                            </button>
+                            <small class="text-muted mt-2 text-center">※この機能は現在実装中です</small>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h2 class="h5 mb-0">アプリ設定</h2>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label d-flex justify-content-between">
+                            <span>ダークモード</span>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="darkModeSwitch" disabled>
+                            </div>
+                        </label>
+                        <small class="text-muted">ダークモードに切り替えます（実装予定）</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label d-flex justify-content-between">
+                            <span>メール通知</span>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="emailNotificationSwitch" disabled>
+                            </div>
+                        </label>
+                        <small class="text-muted">学習リマインダーをメールで受け取ります（実装予定）</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="language" class="form-label">言語設定</label>
+                        <select class="form-select" id="language" disabled>
+                            <option selected>日本語</option>
+                            <option>English</option>
+                        </select>
+                        <small class="text-muted">アプリケーションの表示言語を変更します（実装予定）</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

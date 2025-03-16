@@ -1,0 +1,142 @@
+{% extends "layout.html" %}
+
+{% block title %}フラッシュカード作成{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>フラッシュカードを手動で作成</h1>
+        <a href="{{ url_for('flashcards.index') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> フラッシュカード作成に戻る
+        </a>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-7">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h5 mb-0">新しいフラッシュカード</h2>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('flashcards.create_manual') }}">
+                        <div class="mb-3">
+                            <label for="subject" class="form-label">科目</label>
+                            <select class="form-select" id="subject" name="subject" required>
+                                <option value="">科目を選択してください</option>
+                                {% for code, name in subjects %}
+                                <option value="{{ code }}">{{ name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="topic" class="form-label">トピック</label>
+                            <input type="text" class="form-control" id="topic" name="topic" 
+                                   placeholder="例: 変数と型" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="level" class="form-label">レベル</label>
+                            <select class="form-select" id="level" name="level" required>
+                                <option value="beginner">初級</option>
+                                <option value="intermediate">中級</option>
+                                <option value="advanced">上級</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="front" class="form-label">表面 (質問/概念)</label>
+                            <textarea class="form-control" id="front" name="front" rows="3" 
+                                      placeholder="例: Pythonのリスト内包表記とは何ですか？" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="back" class="form-label">裏面 (回答/説明)</label>
+                            <textarea class="form-control" id="back" name="back" rows="5" 
+                                      placeholder="例: リスト内包表記は、既存のリストから新しいリストを生成するPythonの簡潔な構文です。例: [x for x in range(10) if x % 2 == 0]" required></textarea>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-plus-circle"></i> カードを作成
+                            </button>
+                            <button type="reset" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i> リセット
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-5">
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h2 class="h5 mb-0">良いフラッシュカードの作り方</h2>
+                </div>
+                <div class="card-body">
+                    <h3 class="h6">表面（質問/概念）のコツ：</h3>
+                    <ul>
+                        <li>明確かつ簡潔な質問を心がける</li>
+                        <li>一つのカードには一つの概念や質問だけを含める</li>
+                        <li>難しい概念は細分化して複数のカードに分ける</li>
+                    </ul>
+                    
+                    <h3 class="h6">裏面（回答/説明）のコツ：</h3>
+                    <ul>
+                        <li>簡潔で的確な回答を心がける</li>
+                        <li>可能な限り例を含める</li>
+                        <li>関連する重要ポイントを箇条書きにするとわかりやすい</li>
+                    </ul>
+                    
+                    <div class="alert alert-warning mt-3">
+                        <i class="bi bi-lightbulb"></i> ヒント：表面を見ただけで答えを思い出せるようになるまで繰り返し学習することが大切です。
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h2 class="h5 mb-0">プレビュー</h2>
+                </div>
+                <div class="card-body">
+                    <div class="flashcard-preview">
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">表面 (質問/概念)</div>
+                            <div class="card-body" id="preview-front">
+                                <p class="text-muted">ここに表面のテキストが表示されます</p>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header bg-primary text-white">裏面 (回答/説明)</div>
+                            <div class="card-body" id="preview-back">
+                                <p class="text-muted">ここに裏面のテキストが表示されます</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 表面のプレビュー更新
+        document.getElementById('front').addEventListener('input', function() {
+            const preview = document.getElementById('preview-front');
+            if (this.value) {
+                preview.innerHTML = `<p>${this.value}</p>`;
+            } else {
+                preview.innerHTML = `<p class="text-muted">ここに表面のテキストが表示されます</p>`;
+            }
+        });
+        
+        // 裏面のプレビュー更新
+        document.getElementById('back').addEventListener('input', function() {
+            const preview = document.getElementById('preview-back');
+            if (this.value) {
+                preview.innerHTML = `<p>${this.value}</p>`;
+            } else {
+                preview.innerHTML = `<p class="text-muted">ここに裏面のテキストが表示されます</p>`;
+            }
+        });
+    });
+</script>
+{% endblock %}

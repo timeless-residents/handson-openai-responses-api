@@ -1,0 +1,73 @@
+{% extends "layout.html" %}
+
+{% block title %}学習コンテンツ{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">学習コンテンツ</h1>
+    
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    学習を始める
+                </div>
+                <div class="card-body">
+                    <p class="card-text">学習したい科目を選択してください。各科目にはさまざまな難易度のトピックが用意されています。</p>
+                    <a href="{{ url_for('learning.select_subject') }}" class="btn btn-primary">
+                        <i class="bi bi-book"></i> 科目を選択する
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <h2 class="mb-3">科目一覧</h2>
+    <div class="row">
+        {% for subject in subjects %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-light">
+                    <h3 class="h5 mb-0">{{ subject.name }}</h3>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">{{ subject.name }}に関する学習コンテンツです。初級から上級まで、あなたのレベルに合わせて学習できます。</p>
+                    <a href="{{ url_for('learning.subject', subject_code=subject.code) }}" class="btn btn-outline-primary">
+                        トピックを見る
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h3 class="h5 mb-0">AIチューターと会話する</h3>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">わからないことがあれば、AIチューターに質問できます。丁寧に解説します。</p>
+                    <a href="{{ url_for('learning.conversation') }}" class="btn btn-success">
+                        <i class="bi bi-chat-dots"></i> AIチューターと話す
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h3 class="h5 mb-0">学習計画を作成する</h3>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">効果的に学習するための計画を立てましょう。AIがあなたに最適な学習プランを提案します。</p>
+                    <a href="{{ url_for('plans.index') }}" class="btn btn-info">
+                        <i class="bi bi-calendar-check"></i> 学習計画を作成
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

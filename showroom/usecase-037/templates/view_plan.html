@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学習プラン詳細 - 個人向け学習アシスタント</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .container {
+            max-width: 1140px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            border: none;
+        }
+        .card-header {
+            background-color: #4285f4;
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+            padding: 15px 20px;
+        }
+        .card-body {
+            padding: 20px;
+        }
+        .progress {
+            height: 25px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .plan-item {
+            border-left: 4px solid #4285f4;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        .plan-item.completed {
+            border-left-color: #34a853;
+            opacity: 0.8;
+        }
+        .plan-item h5 {
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .plan-item .day-badge {
+            font-size: 0.9rem;
+            background-color: #4285f4;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+        .plan-item .completed-badge {
+            background-color: #34a853;
+        }
+        .btn-complete {
+            padding: 0;
+            background: none;
+            border: none;
+            color: #4285f4;
+            cursor: pointer;
+        }
+        .btn-complete:hover {
+            color: #1a73e8;
+        }
+        .btn-complete.completed {
+            color: #34a853;
+        }
+        .btn-back {
+            margin-bottom: 20px;
+        }
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            .plan-item h5 {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .plan-item .day-badge {
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary btn-back">
+                    <i class="fas fa-arrow-left"></i> ダッシュボードに戻る
+                </a>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h2>{{ plan.title }}</h2>
+                        <div class="d-flex justify-content-between">
+                            <div>科目: {{ plan.subject.name }} | レベル: {{ plan.level }}</div>
+                            <div>期間: {{ plan.start_date.strftime('%Y/%m/%d') }} - {{ plan.end_date.strftime('%Y/%m/%d') }}</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <h4>学習目標</h4>
+                        <p>{{ plan.description }}</p>
+                        
+                        <h4>進捗状況</h4>
+                        <div class="progress">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: {{ progress }}%;" 
+                                aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100">
+                                {{ progress }}%
+                            </div>
+                        </div>
+                        
+                        <h4>学習計画</h4>
+                        {% for item in plan_items %}
+                        <div class="plan-item {% if item.completed %}completed{% endif %}">
+                            <h5>
+                                <span>
+                                    <span class="day-badge {% if item.completed %}completed-badge{% endif %}">Day {{ item.day_number }}</span>
+                                    {{ item.title }}
+                                </span>
+                                <button class="btn-complete {% if item.completed %}completed{% endif %}" 
+                                    onclick="toggleComplete({{ plan.id }}, {{ item.id }}, this)">
+                                    {% if item.completed %}
+                                    <i class="fas fa-check-circle"></i> 完了
+                                    {% else %}
+                                    <i class="far fa-circle"></i> 未完了
+                                    {% endif %}
+                                </button>
+                            </h5>
+                            <p>{{ item.description }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-muted">予定学習時間: {{ item.estimated_duration }}分</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function toggleComplete(planId, itemId, button) {
+            $.ajax({
+                url: `/plan/${planId}/complete/${itemId}`,
+                type: 'POST',
+                success: function(response) {
+                    if (response.success) {
+                        const completed = response.completed;
+                        const planItem = button.closest('.plan-item');
+                        const dayBadge = planItem.querySelector('.day-badge');
+                        
+                        if (completed) {
+                            button.innerHTML = '<i class="fas fa-check-circle"></i> 完了';
+                            button.classList.add('completed');
+                            planItem.classList.add('completed');
+                            dayBadge.classList.add('completed-badge');
+                        } else {
+                            button.innerHTML = '<i class="far fa-circle"></i> 未完了';
+                            button.classList.remove('completed');
+                            planItem.classList.remove('completed');
+                            dayBadge.classList.remove('completed-badge');
+                        }
+                        
+                        // ページをリロードして進捗バーを更新
+                        location.reload();
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

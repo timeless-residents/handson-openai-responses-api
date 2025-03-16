@@ -1,0 +1,48 @@
+{% extends "layout.html" %}
+
+{% block title %}科目選択{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">科目を選択</h1>
+    
+    <div class="row">
+        {% for subject in subjects %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h5 mb-0">{{ subject.name }}</h2>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">{{ subject.name }}に関する学習を始めましょう。あなたのレベルに合わせたトピックを選択できます。</p>
+                    <div class="d-grid">
+                        <a href="{{ url_for('learning.subject', subject_code=subject.code) }}" class="btn btn-outline-primary">
+                            <i class="bi bi-book"></i> トピックを選択
+                        </a>
+                    </div>
+                </div>
+                <div class="card-footer bg-light">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="badge bg-primary">初級</span>
+                        <span class="badge bg-warning">中級</span>
+                        <span class="badge bg-danger">上級</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <div class="text-center mt-4">
+        <a href="{{ url_for('learning.conversation') }}" class="btn btn-success mx-2">
+            <i class="bi bi-chat-dots"></i> AIチューターと話す
+        </a>
+        <a href="{{ url_for('plans.index') }}" class="btn btn-info mx-2">
+            <i class="bi bi-calendar-check"></i> 学習計画を作成
+        </a>
+        <a href="{{ url_for('dashboard.dashboard') }}" class="btn btn-secondary mx-2">
+            <i class="bi bi-arrow-left"></i> ダッシュボードに戻る
+        </a>
+    </div>
+</div>
+{% endblock %}

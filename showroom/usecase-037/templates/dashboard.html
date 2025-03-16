@@ -105,7 +105,7 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container-fluid">
-            <a class="navbar-brand" href="{{ url_for('dashboard') }}">AI学習アシスタント</a>
+            <a class="navbar-brand" href="{{ url_for('dashboard.dashboard') }}">AI学習アシスタント</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -134,22 +134,22 @@
                     <div class="sidebar-heading">メインメニュー</div>
                     <ul class="nav flex-column">
                         <li class="nav-item">
-                            <a class="active" href="{{ url_for('dashboard') }}">
+                            <a class="active" href="{{ url_for('dashboard.dashboard') }}">
                                 <i class="fas fa-tachometer-alt me-2"></i> ダッシュボード
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{ url_for('select_subject') }}">
+                            <a href="{{ url_for('learning.select_subject') }}">
                                 <i class="fas fa-book-open me-2"></i> 学習を開始
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{ url_for('create_learning_plan') }}">
+                            <a href="{{ url_for('plans.index') }}">
                                 <i class="fas fa-calendar-alt me-2"></i> 学習プラン
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{ url_for('ask_question') }}">
+                            <a href="{{ url_for('learning.conversation') }}">
                                 <i class="fas fa-question-circle me-2"></i> 質問する
                             </a>
                         </li>
@@ -158,22 +158,22 @@
                     <div class="sidebar-heading mt-4">ツール</div>
                     <ul class="nav flex-column">
                         <li class="nav-item">
-                            <a href="{{ url_for('notes') }}">
+                            <a href="{{ url_for('notes.index') }}">
                                 <i class="fas fa-sticky-note me-2"></i> ノート
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{ url_for('flashcards') }}">
+                            <a href="{{ url_for('flashcards.index') }}">
                                 <i class="fas fa-clone me-2"></i> フラッシュカード
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{ url_for('create_quiz') }}">
+                            <a href="{{ url_for('quizzes.index') }}">
                                 <i class="fas fa-tasks me-2"></i> クイズ
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{ url_for('stats') }}">
+                            <a href="{{ url_for('stats.index') }}">
                                 <i class="fas fa-chart-bar me-2"></i> 学習統計
                             </a>
                         </li>
@@ -184,7 +184,7 @@
             <div class="col-md-9 col-lg-10 main-content">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h2>ダッシュボード</h2>
-                    <button class="btn btn-primary" onclick="location.href='{{ url_for('select_subject') }}'">
+                    <button class="btn btn-primary" onclick="location.href='{{ url_for('learning.select_subject') }}'">
                         <i class="fas fa-plus me-2"></i>新しい学習を開始
                     </button>
                 </div>
@@ -247,7 +247,7 @@
                                             </div>
                                             <div class="d-flex justify-content-between mt-2">
                                                 <small class="text-muted">{{ plan.subject.name }} | {{ plan.level }}</small>
-                                                <a href="{{ url_for('view_learning_plan', plan_id=plan.id) }}" class="text-decoration-none">詳細を見る</a>
+                                                <a href="{{ url_for('plans.view', plan_id=plan.id) }}" class="text-decoration-none">詳細を見る</a>
                                             </div>
                                         </div>
                                     {% endfor %}
@@ -255,7 +255,7 @@
                                     <div class="text-center py-5">
                                         <i class="fas fa-calendar-alt fa-3x text-muted mb-3"></i>
                                         <p>学習プランがまだありません</p>
-                                        <a href="{{ url_for('create_learning_plan') }}" class="btn btn-primary">学習プランを作成</a>
+                                        <a href="{{ url_for('plans.index') }}" class="btn btn-primary">学習プランを作成</a>
                                     </div>
                                 {% endif %}
                             </div>
@@ -272,7 +272,7 @@
                                     <div class="text-center py-5">
                                         <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
                                         <p>学習データがありません</p>
-                                        <a href="{{ url_for('select_subject') }}" class="btn btn-primary">学習を開始</a>
+                                        <a href="{{ url_for('learning.select_subject') }}" class="btn btn-primary">学習を開始</a>
                                     </div>
                                 {% endif %}
                             </div>
@@ -300,14 +300,14 @@
                             <div class="card-header bg-white">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <h5 class="card-title mb-0">最近のノート</h5>
-                                    <a href="{{ url_for('notes') }}" class="text-decoration-none">すべて見る</a>
+                                    <a href="{{ url_for('notes.index') }}" class="text-decoration-none">すべて見る</a>
                                 </div>
                             </div>
                             <div class="card-body">
                                 {% if recent_notes %}
                                     <div class="list-group">
                                         {% for note in recent_notes %}
-                                            <a href="{{ url_for('view_note', note_id=note.id) }}" class="list-group-item list-group-item-action">
+                                            <a href="{{ url_for('notes.view', note_id=note.id) }}" class="list-group-item list-group-item-action">
                                                 <div class="d-flex w-100 justify-content-between">
                                                     <h6 class="mb-1">{{ note.title }}</h6>
                                                     <small>{{ note.updated_at.strftime('%m/%d') }}</small>
@@ -319,7 +319,7 @@
                                 {% else %}
                                     <div class="text-center py-4">
                                         <p class="text-muted">ノートがまだありません</p>
-                                        <a href="{{ url_for('new_note') }}" class="btn btn-sm btn-outline-primary">ノートを作成</a>
+                                        <a href="{{ url_for('notes.index') }}" class="btn btn-sm btn-outline-primary">ノートを作成</a>
                                     </div>
                                 {% endif %}
                             </div>
@@ -359,7 +359,7 @@
                             <div class="text-center py-5">
                                 <i class="fas fa-history fa-3x text-muted mb-3"></i>
                                 <p>学習セッションがまだありません</p>
-                                <a href="{{ url_for('select_subject') }}" class="btn btn-primary">学習を開始</a>
+                                <a href="{{ url_for('learning.select_subject') }}" class="btn btn-primary">学習を開始</a>
                             </div>
                         {% endif %}
                     </div>

@@ -1,0 +1,174 @@
+{% extends "layout.html" %}
+
+{% block title %}ノート{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">ノート</h1>
+    
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h5 mb-0">新しいノートを追加</h2>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('notes.index') }}">
+                        {{ form.hidden_tag() }}
+                        <div class="mb-3">
+                            <label for="title" class="form-label">タイトル</label>
+                            {{ form.title(class="form-control", placeholder="例: Pythonの変数とデータ型") }}
+                            {% if form.title.errors %}
+                            <div class="text-danger">
+                                {% for error in form.title.errors %}
+                                <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
+                            <label for="subject" class="form-label">科目</label>
+                            {{ form.subject(class="form-select") }}
+                            {% if form.subject.errors %}
+                            <div class="text-danger">
+                                {% for error in form.subject.errors %}
+                                <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
+                            <label for="topic" class="form-label">トピック</label>
+                            {{ form.topic(class="form-control", placeholder="例: 変数と型") }}
+                            {% if form.topic.errors %}
+                            <div class="text-danger">
+                                {% for error in form.topic.errors %}
+                                <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
+                            <label for="content" class="form-label">内容</label>
+                            {{ form.content(class="form-control", rows="8", placeholder="ノートの内容を入力してください。Markdown形式で書くことができます。") }}
+                            {% if form.content.errors %}
+                            <div class="text-danger">
+                                {% for error in form.content.errors %}
+                                <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            <div class="form-text">
+                                Markdown形式がサポートされています。見出し(#)、リスト(-)、コードブロック(```)などが使えます。
+                            </div>
+                        </div>
+                        <div class="d-grid">
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h2 class="h5 mb-0">ノートについて</h2>
+                </div>
+                <div class="card-body">
+                    <p>ノート機能を使って、学習内容をまとめましょう。後で復習や参照に使えます。</p>
+                    <h3 class="h6">ノートの特徴：</h3>
+                    <ul>
+                        <li>Markdown形式でリッチなフォーマットが可能</li>
+                        <li>科目やトピックで整理して簡単に検索可能</li>
+                        <li>重要キーワードの自動抽出機能</li>
+                        <li>ワードクラウドによる視覚的な理解サポート</li>
+                    </ul>
+                    <div class="alert alert-info">
+                        <i class="bi bi-lightbulb"></i> ヒント：学んだ内容を自分の言葉でまとめることで、理解が深まり記憶に定着します。
+                    </div>
+                    <h3 class="h6">Markdown記法の例：</h3>
+                    <pre class="bg-light p-2 rounded"><code># 大見出し
+## 中見出し
+- リスト項目1
+- リスト項目2
+
+**太字** と *斜体*
+
+```python
+# コードブロック
+def hello():
+    print("Hello World!")
+```</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <h2 class="mb-3">ノート一覧</h2>
+    
+    <div class="mb-4">
+        <form action="{{ url_for('notes.search') }}" method="GET" class="row g-2">
+            <div class="col-md-10">
+                <input type="text" class="form-control" name="query" placeholder="ノートを検索..." required>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary w-100">
+                    <i class="bi bi-search"></i> 検索
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    {% if notes_by_subject|length > 0 %}
+        {% for subject_name, notes in notes_by_subject.items() %}
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h3 class="h5 mb-0">{{ subject_name }}</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>タイトル</th>
+                                    <th>トピック</th>
+                                    <th>最終更新</th>
+                                    <th>アクション</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for note in notes %}
+                                <tr>
+                                    <td>{{ note.title }}</td>
+                                    <td>{{ note.topic }}</td>
+                                    <td>{{ note.updated_at.strftime('%Y/%m/%d %H:%M') }}</td>
+                                    <td>
+                                        <a href="{{ url_for('notes.view', note_id=note.id) }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a href="{{ url_for('notes.edit', note_id=note.id) }}" class="btn btn-sm btn-outline-secondary">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <form method="POST" action="{{ url_for('notes.delete', note_id=note.id) }}" class="d-inline"
+                                              onsubmit="return confirm('このノートを削除してもよろしいですか？');">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>
+            ノートがまだありません。上のフォームから新しいノートを作成してください。
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,163 @@
+{% extends "layout.html" %}
+
+{% block title %}クイズ{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">クイズ</h1>
+    
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h5 mb-0">新しいクイズを作成</h2>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('quizzes.index') }}" data-show-loading="true" data-loading-message="クイズ問題を生成中">
+                        {{ form.hidden_tag() }}
+                        <div class="mb-3">
+                            <label for="title" class="form-label">タイトル</label>
+                            {{ form.title(class="form-control", placeholder="例: Python基礎クイズ") }}
+                            {% if form.title.errors %}
+                            <div class="text-danger">
+                                {% for error in form.title.errors %}
+                                <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
+                            <label for="subject" class="form-label">科目</label>
+                            {{ form.subject(class="form-select") }}
+                            {% if form.subject.errors %}
+                            <div class="text-danger">
+                                {% for error in form.subject.errors %}
+                                <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
+                            <label for="topic" class="form-label">トピック</label>
+                            {{ form.topic(class="form-control", placeholder="例: 変数と型") }}
+                            {% if form.topic.errors %}
+                            <div class="text-danger">
+                                {% for error in form.topic.errors %}
+                                <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
+                            <label for="level" class="form-label">レベル</label>
+                            {{ form.level(class="form-select") }}
+                            {% if form.level.errors %}
+                            <div class="text-danger">
+                                {% for error in form.level.errors %}
+                                <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
+                            <label for="num_questions" class="form-label">問題数</label>
+                            {{ form.num_questions(class="form-control", type="number", min="1", max="10") }}
+                            {% if form.num_questions.errors %}
+                            <div class="text-danger">
+                                {% for error in form.num_questions.errors %}
+                                <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            <div class="form-text">1〜10の範囲で指定してください。</div>
+                        </div>
+                        <div class="d-grid">
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h2 class="h5 mb-0">クイズについて</h2>
+                </div>
+                <div class="card-body">
+                    <p>クイズを使って学習内容の理解度を確認しましょう。AIが科目、トピック、レベルに応じた問題を生成します。</p>
+                    <h3 class="h6">クイズの特徴：</h3>
+                    <ul>
+                        <li>選択式と記述式の問題を含む多様な問題形式</li>
+                        <li>各問題に詳細な解説が付属</li>
+                        <li>レベルに応じた適切な難易度設定</li>
+                        <li>回答後に結果を確認して理解度を把握</li>
+                        <li>スコアや進捗を記録して継続的に学習を管理</li>
+                    </ul>
+                    <p class="mb-0">新しいクイズを作成して、知識をテストしましょう！</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <h2 class="mb-3">あなたのクイズ</h2>
+    {% if quizzes|length > 0 %}
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th>タイトル</th>
+                    <th>科目</th>
+                    <th>トピック</th>
+                    <th>作成日</th>
+                    <th>状態</th>
+                    <th>スコア</th>
+                    <th>アクション</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for quiz in quizzes %}
+                <tr>
+                    <td>{{ quiz.title }}</td>
+                    <td>{{ quiz.subject.name }}</td>
+                    <td>{{ quiz.topic }}</td>
+                    <td>{{ quiz.created_at.strftime('%Y/%m/%d') }}</td>
+                    <td>
+                        {% if quiz.completed_at %}
+                        <span class="badge bg-success">完了</span>
+                        {% else %}
+                        <span class="badge bg-warning text-dark">未完了</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if quiz.score is not none %}
+                        <span class="{% if quiz.score >= 80 %}text-success{% elif quiz.score >= 60 %}text-warning{% else %}text-danger{% endif %}">
+                            {{ quiz.score|round|int }}%
+                        </span>
+                        {% else %}
+                        -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if quiz.completed_at %}
+                        <a href="{{ url_for('quizzes.result', quiz_id=quiz.id) }}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-eye"></i> 結果を見る
+                        </a>
+                        {% else %}
+                        <a href="{{ url_for('quizzes.take', quiz_id=quiz.id) }}" class="btn btn-sm btn-warning">
+                            <i class="bi bi-pencil"></i> 解答する
+                        </a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle me-2"></i>
+        まだクイズがありません。上のフォームから新しいクイズを作成してください。
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

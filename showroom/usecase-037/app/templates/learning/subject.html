@@ -1,0 +1,129 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ subject.name }} - トピック一覧{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>{{ subject.name }}</h1>
+        <a href="{{ url_for('learning.select_subject') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> 科目一覧に戻る
+        </a>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <p class="card-text">以下から学習したいトピックを選択してください。トピックは難易度別に分かれています。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 初級トピック -->
+    <h2 class="mb-3">初級トピック</h2>
+    <div class="row mb-5">
+        {% if beginner_topics|length > 0 %}
+            {% for topic in beginner_topics %}
+            <div class="col-md-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-header bg-primary text-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h3 class="h5 mb-0">{{ topic.name }}</h3>
+                            <span class="badge bg-light text-primary">初級</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid">
+                            <a href="{{ url_for('learning.topic', topic_id=topic.id) }}" class="btn btn-outline-primary">
+                                <i class="bi bi-book"></i> 学習する
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    初級トピックはまだありません。
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- 中級トピック -->
+    <h2 class="mb-3">中級トピック</h2>
+    <div class="row mb-5">
+        {% if intermediate_topics|length > 0 %}
+            {% for topic in intermediate_topics %}
+            <div class="col-md-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-header bg-warning text-dark">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h3 class="h5 mb-0">{{ topic.name }}</h3>
+                            <span class="badge bg-light text-warning">中級</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid">
+                            <a href="{{ url_for('learning.topic', topic_id=topic.id) }}" class="btn btn-outline-warning">
+                                <i class="bi bi-book"></i> 学習する
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    中級トピックはまだありません。
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- 上級トピック -->
+    <h2 class="mb-3">上級トピック</h2>
+    <div class="row">
+        {% if advanced_topics|length > 0 %}
+            {% for topic in advanced_topics %}
+            <div class="col-md-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-header bg-danger text-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h3 class="h5 mb-0">{{ topic.name }}</h3>
+                            <span class="badge bg-light text-danger">上級</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid">
+                            <a href="{{ url_for('learning.topic', topic_id=topic.id) }}" class="btn btn-outline-danger">
+                                <i class="bi bi-book"></i> 学習する
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    上級トピックはまだありません。
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="mt-5 mb-3 text-center">
+        <a href="{{ url_for('learning.conversation') }}" class="btn btn-success mx-2">
+            <i class="bi bi-chat-dots"></i> AIチューターと話す
+        </a>
+        <a href="{{ url_for('plans.index') }}" class="btn btn-info mx-2">
+            <i class="bi bi-calendar-check"></i> 学習計画を作成
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,105 @@
+{% extends "layout.html" %}
+
+{% block title %}ノート検索結果{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>ノート検索結果</h1>
+        <a href="{{ url_for('notes.index') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> ノート一覧に戻る
+        </a>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-body">
+            <form action="{{ url_for('notes.search') }}" method="GET" class="row g-2">
+                <div class="col-md-10">
+                    <input type="text" class="form-control" name="query" value="{{ query }}" placeholder="ノートを検索..." required>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i> 検索
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div class="mb-3">
+        <h2 class="h4">「{{ query }}」の検索結果</h2>
+        <p>{{ notes|length }}件のノートが見つかりました。</p>
+    </div>
+    
+    {% if notes|length > 0 %}
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>タイトル</th>
+                                <th>科目</th>
+                                <th>トピック</th>
+                                <th>最終更新</th>
+                                <th>アクション</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for note in notes %}
+                            <tr>
+                                <td>{{ note.title }}</td>
+                                <td>{{ note.subject.name }}</td>
+                                <td>{{ note.topic }}</td>
+                                <td>{{ note.updated_at.strftime('%Y/%m/%d %H:%M') }}</td>
+                                <td>
+                                    <a href="{{ url_for('notes.view', note_id=note.id) }}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{{ url_for('notes.edit', note_id=note.id) }}" class="btn btn-sm btn-outline-secondary">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>
+            検索結果が見つかりませんでした。別のキーワードで試してみてください。
+        </div>
+    {% endif %}
+    
+    <div class="mt-4">
+        <h3 class="h5">検索のヒント</h3>
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <h4 class="h6"><i class="bi bi-lightbulb text-warning"></i> キーワードを変えてみる</h4>
+                            <p class="small">同義語や関連する用語で検索してみましょう。</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <h4 class="h6"><i class="bi bi-lightbulb text-warning"></i> 複数のキーワードを試す</h4>
+                            <p class="small">複数のキーワードを組み合わせて絞り込みましょう。</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <h4 class="h6"><i class="bi bi-lightbulb text-warning"></i> 科目やトピックで探す</h4>
+                            <p class="small">ノート一覧から科目別に探すこともできます。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

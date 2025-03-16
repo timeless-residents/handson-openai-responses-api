@@ -1,0 +1,174 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ topic.name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>{{ topic.name }}</h1>
+        <a href="{{ url_for('learning.subject', subject_code=topic.subject.code) }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> {{ topic.subject.name }}に戻る
+        </a>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h2 class="h5 mb-0">学習コンテンツ</h2>
+                    <span class="badge bg-light text-primary">
+                        {% if topic.level == 'beginner' %}初級
+                        {% elif topic.level == 'intermediate' %}中級
+                        {% else %}上級{% endif %}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="content-container mb-4">
+                        {{ content_html|safe }}
+                    </div>
+                    
+                    <div class="row mt-5">
+                        <div class="col-12">
+                            <h3 class="mb-3">追加リソース</h3>
+                            <div class="list-group">
+                                {% for resource in additional_resources %}
+                                <button class="list-group-item list-group-item-action" 
+                                        onclick="loadAdditionalContent('{{ url_for('learning.api_get_content', topic_id=topic.id) }}?type={{ resource.content_type }}')">
+                                    <i class="bi bi-file-earmark-text"></i> {{ resource.title }}
+                                </button>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="additional-content-container" class="mt-4" style="display: none;">
+                        <div class="card">
+                            <div class="card-header bg-light">
+                                <h3 id="additional-content-title" class="h5 mb-0"></h3>
+                            </div>
+                            <div class="card-body">
+                                <div id="additional-content"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h3 class="h5 mb-0">このトピックについて質問する</h3>
+                </div>
+                <div class="card-body">
+                    <p>わからないことがあれば、AIチューターに質問できます。</p>
+                    <div class="d-grid">
+                        <a href="{{ url_for('learning.conversation') }}" class="btn btn-success">
+                            <i class="bi bi-chat-dots"></i> AIチューターと話す
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h3 class="h5 mb-0">理解度をテスト</h3>
+                </div>
+                <div class="card-body">
+                    <p>学んだ内容を確認するためにクイズに挑戦しましょう。</p>
+                    <div class="d-grid">
+                        <a href="{{ url_for('quizzes.index') }}" class="btn btn-warning">
+                            <i class="bi bi-patch-question"></i> クイズを作成
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// セッションID (サーバーから渡される)
+const sessionId = {{ session_id|tojson|safe }};
+let isPageActive = true;
+let studyStartTime = new Date();
+
+// ページの可視性変更時のイベントリスナー
+document.addEventListener('visibilitychange', function() {
+    isPageActive = !document.hidden;
+    console.log('ページの可視性が変更されました:', isPageActive ? '表示' : '非表示');
+});
+
+// 学習セッションを終了する関数
+function endStudySession() {
+    if (!sessionId) return;
+    
+    console.log('学習セッションを終了します...');
+    
+    fetch('{{ url_for("learning.api_end_session") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            session_id: sessionId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('セッション終了結果:', data);
+        if (data.success) {
+            console.log(`学習時間: ${data.duration_minutes}分`);
+        }
+    })
+    .catch(error => {
+        console.error('学習セッション終了エラー:', error);
+    });
+}
+
+// ページ離脱時に学習セッションを終了
+window.addEventListener('beforeunload', function() {
+    endStudySession();
+});
+
+function loadAdditionalContent(url) {
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('additional-content-title').textContent = 
+                data.content_type === 'examples' ? '例題と練習問題' : 
+                data.content_type === 'summary' ? '重要ポイントの要約' : 
+                data.content_type === 'assessment' ? '理解度チェック問題' : 
+                'その他のコンテンツ';
+            
+            document.getElementById('additional-content').innerHTML = marked.parse(data.content);
+            document.getElementById('additional-content-container').style.display = 'block';
+            
+            // スクロール
+            document.getElementById('additional-content-container').scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('コンテンツの読み込み中にエラーが発生しました。');
+        });
+}
+
+// Markdownパーサーを読み込む
+document.addEventListener('DOMContentLoaded', function() {
+    // marked.jsがまだ読み込まれていない場合は読み込む
+    if (typeof marked === 'undefined') {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/marked/marked.min.js';
+        document.head.appendChild(script);
+    }
+});
+</script>
+{% endblock %}

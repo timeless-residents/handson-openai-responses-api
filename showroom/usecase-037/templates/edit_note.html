@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if is_new %}新規ノート作成{% else %}ノート編集{% endif %} - 個人向け学習アシスタント</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .container {
+            max-width: 1140px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            border: none;
+        }
+        .card-header {
+            background-color: #4285f4;
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+            padding: 15px 20px;
+        }
+        .card-body {
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .CodeMirror {
+            height: 400px !important;
+            border-radius: 5px;
+            border: 1px solid #ced4da;
+        }
+        .btn-back {
+            margin-bottom: 20px;
+        }
+        .editor-toolbar {
+            border-radius: 5px 5px 0 0;
+            border: 1px solid #ced4da;
+            border-bottom: none;
+        }
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            .CodeMirror {
+                height: 300px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="{{ url_for('notes') }}" class="btn btn-outline-primary btn-back">
+            <i class="fas fa-arrow-left"></i> ノート一覧に戻る
+        </a>
+        
+        <div class="card">
+            <div class="card-header">
+                <h3>{% if is_new %}新規ノート作成{% else %}ノート編集{% endif %}</h3>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="form-group">
+                        <label for="title">{{ form.title.label }}</label>
+                        {{ form.title(class="form-control", placeholder="ノートのタイトルを入力") }}
+                        {% if form.title.errors %}
+                        <div class="text-danger">
+                            {% for error in form.title.errors %}
+                            <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="content">{{ form.content.label }}</label>
+                        {{ form.content(class="form-control", id="markdown-editor", rows="15") }}
+                        {% if form.content.errors %}
+                        <div class="text-danger">
+                            {% for error in form.content.errors %}
+                            <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        <small class="text-muted">Markdown形式で記述できます。</small>
+                    </div>
+                    
+                    <div class="form-group d-flex justify-content-between">
+                        <a href="{{ url_for('notes') }}" class="btn btn-outline-secondary">キャンセル</a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
+    <script>
+        // Markdownエディタの初期化
+        const easyMDE = new EasyMDE({
+            element: document.getElementById('markdown-editor'),
+            spellChecker: false,
+            autosave: {
+                enabled: true,
+                uniqueId: "note-editor",
+                delay: 1000,
+            },
+            toolbar: [
+                "bold", "italic", "heading", "|", 
+                "quote", "code", "unordered-list", "ordered-list", "|",
+                "link", "image", "|",
+                "preview", "side-by-side", "fullscreen", "|",
+                "guide"
+            ],
+            placeholder: "ノートの内容をMarkdown形式で入力してください...",
+            status: ["autosave", "lines", "words", "cursor"],
+        });
+    </script>
+</body>
+</html>

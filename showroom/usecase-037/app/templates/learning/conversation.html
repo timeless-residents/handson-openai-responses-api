@@ -1,0 +1,88 @@
+{% extends "layout.html" %}
+
+{% block title %}AIチューター{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">AIチューター</h1>
+    
+    {% if conversations|length > 0 %}
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h5 mb-0">過去の会話</h2>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>タイトル</th>
+                                    <th>科目</th>
+                                    <th>トピック</th>
+                                    <th>最終更新</th>
+                                    <th>アクション</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for conversation in conversations %}
+                                <tr>
+                                    <td>{{ conversation.title }}</td>
+                                    <td>{{ conversation.subject.name if conversation.subject else "指定なし" }}</td>
+                                    <td>{{ conversation.topic if conversation.topic else "指定なし" }}</td>
+                                    <td>{{ conversation.updated_at.strftime('%Y/%m/%d %H:%M') if conversation.updated_at else '未更新' }}</td>
+                                    <td>
+                                        <a href="{{ url_for('learning.chat', conversation_id=conversation.id) }}" class="btn btn-sm btn-primary">
+                                            <i class="bi bi-chat-dots"></i> 続ける
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h2 class="h5 mb-0">新しい会話を開始</h2>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('learning.conversation') }}" data-show-loading="true" data-loading-message="会話を準備しています">
+                        <div class="mb-3">
+                            <label for="title" class="form-label">会話タイトル</label>
+                            <input type="text" class="form-control" id="title" name="title" required placeholder="例: 数学の三角関数について">
+                        </div>
+                        <div class="mb-3">
+                            <label for="subject" class="form-label">科目 (任意)</label>
+                            <select class="form-select" id="subject" name="subject">
+                                <option value="">科目を選択してください</option>
+                                {% for subject in subjects %}
+                                <option value="{{ subject.code }}">{{ subject.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">科目を選択すると、AIチューターがその分野に特化したサポートを提供します。</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="topic" class="form-label">トピック (任意)</label>
+                            <input type="text" class="form-control" id="topic" name="topic" placeholder="例: 三角関数の基本">
+                            <div class="form-text">特定のトピックについて質問する場合は入力してください。</div>
+                        </div>
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-chat-dots"></i> 会話を開始
+                        </button>
+                        <a href="{{ url_for('dashboard.dashboard') }}" class="btn btn-secondary">キャンセル</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

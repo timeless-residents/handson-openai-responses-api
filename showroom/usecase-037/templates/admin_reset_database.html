@@ -1,0 +1,41 @@
+{% extends "layout.html" %}
+
+{% block title %}データベースリセット{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h2>データベース完全リセット</h2>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <h4 class="alert-heading">警告！</h4>
+                        <p>この操作は<strong>すべてのデータ</strong>を削除します。この操作は取り消せません。</p>
+                        <p>すべてのユーザーアカウント、学習データ、プラン、クイズなどが削除されます。</p>
+                    </div>
+                    
+                    <form method="POST" action="{{ url_for('admin_reset_database') }}">
+                        <div class="form-group mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="confirm" required>
+                                <label class="form-check-label" for="confirm">
+                                    すべてのデータを削除することを確認します
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <input type="hidden" name="action" value="reset_all_data">
+                        <button type="submit" class="btn btn-danger btn-lg" onclick="return confirm('本当にすべてのデータをリセットしますか？この操作は取り消せません。')">
+                            データベースを完全リセット
+                        </button>
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary ml-2">キャンセル</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
