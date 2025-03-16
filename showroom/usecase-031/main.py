@@ -222,7 +222,16 @@ def plot_rating_distribution(rating_counts, title="評価点の分布"):
     """評価点の分布を棒グラフで可視化します。"""
     plt.figure(figsize=(10, 6))
     sns.set(font_scale=1.2)
-    ax = sns.barplot(x=rating_counts.index, y=rating_counts.values, palette="viridis")
+    
+    # seaborn 0.14.0以降のための対応 (hueを追加し、legendをFalseに)
+    x_values = rating_counts.index
+    ax = sns.barplot(
+        x=x_values, 
+        y=rating_counts.values, 
+        hue=x_values,  # FutureWarning対応
+        palette="viridis", 
+        legend=False   # 凡例を非表示
+    )
     
     # テキスト装飾（日本語フォントプロパティを明示的に指定）
     if japanese_font_prop:
@@ -234,10 +243,15 @@ def plot_rating_distribution(rating_counts, title="評価点の分布"):
         plt.xlabel("評価点", fontsize=14, labelpad=10)
         plt.ylabel("レビュー数", fontsize=14, labelpad=10)
     
+    # 目盛り設定
     plt.xticks(fontsize=12)
     plt.yticks(fontsize=12)
+    
+    # 各バーの上に値を表示
     for i, v in enumerate(rating_counts.values):
         ax.text(i, v + 0.1, str(v), ha="center", fontsize=11)
+    
+    # グリッド線
     plt.grid(axis="y", linestyle="--", alpha=0.7)
     plt.tight_layout()
     return plt
@@ -308,49 +322,71 @@ def create_word_cloud(tokenized_reviews, title="頻出ワードクラウド"):
     word_freq = Counter(all_tokens)
     font_path = None
     potential_font_paths = []
+    
+    # macOS用フォントパス
     if sys.platform.startswith("darwin"):
-        potential_font_paths.extend(
-            [
-                "/System/Library/Fonts/ヒラギノ角ゴシック W4.ttc",
-                "/System/Library/Fonts/AppleGothic.ttf",
-                "/System/Library/Fonts/ヒラギノ丸ゴ ProN W4.ttc",
-                "/Library/Fonts/Osaka.ttf",
-                "/Library/Fonts/ヒラギノ明朝 ProN.ttc",
-                "/System/Library/Fonts/Supplemental/Arial Unicode.ttf",
-            ]
-        )
+        potential_font_paths.extend([
+            "/System/Library/Fonts/ヒラギノ角ゴシック W4.ttc",
+            "/System/Library/Fonts/AppleGothic.ttf",
+            "/System/Library/Fonts/ヒラギノ丸ゴ ProN W4.ttc",
+            "/Library/Fonts/Osaka.ttf",
+            "/Library/Fonts/ヒラギノ明朝 ProN.ttc",
+            "/System/Library/Fonts/Supplemental/Arial Unicode.ttf",
+            # macOS Big Sur以降
+            "/System/Library/Fonts/Hiragino Sans GB.ttc",
+            "/System/Library/Fonts/Hiragino Maru Gothic Pro.ttc",
+            "/System/Library/Fonts/Hiragino Kaku Gothic Pro.ttc",
+        ])
+    # Windows用フォントパス
     elif sys.platform.startswith("win"):
-        potential_font_paths.extend(
-            [
-                "C:\\Windows\\Fonts\\msgothic.ttc",
-                "C:\\Windows\\Fonts\\meiryo.ttc",
-                "C:\\Windows\\Fonts\\YuGothic.ttf",
-                "C:\\Windows\\Fonts\\MSMincho.ttc",
-                "C:\\Windows\\Fonts\\Arial Unicode.ttf",
-            ]
-        )
+        potential_font_paths.extend([
+            "C:\\Windows\\Fonts\\msgothic.ttc",
+            "C:\\Windows\\Fonts\\meiryo.ttc",
+            "C:\\Windows\\Fonts\\YuGothic.ttf",
+            "C:\\Windows\\Fonts\\MSMincho.ttc",
+            "C:\\Windows\\Fonts\\Arial Unicode.ttf",
+        ])
+    # Linux用フォントパス
     else:
-        potential_font_paths.extend(
-            [
-                "/usr/share/fonts/truetype/fonts-japanese-gothic.ttf",
-                "/usr/share/fonts/truetype/ipafont-gothic/ipag.ttf",
-                "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
-                "/usr/share/fonts/truetype/vlgothic/VL-Gothic-Regular.ttf",
-                "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-            ]
-        )
-    if japanese_fonts:
-        for font in japanese_fonts:
-            # もし既にパスならそのまま
-            if os.path.exists(font):
-                potential_font_paths.append(font)
+        potential_font_paths.extend([
+            "/usr/share/fonts/truetype/fonts-japanese-gothic.ttf",
+            "/usr/share/fonts/truetype/ipafont-gothic/ipag.ttf",
+            "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+            "/usr/share/fonts/truetype/vlgothic/VL-Gothic-Regular.ttf",
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        ])
+    
+    # 設定済みのフォントプロパティがあれば、そのパスを追加
+    if japanese_font_prop:
+        # matplotlibのfontpropertyからフォントファイルを取得
+        try:
+            import matplotlib.font_manager as fm
+            path = fm.findfont(japanese_font_prop)
+            if path and os.path.exists(path):
+                potential_font_paths.append(path)
+                print(f"既存のフォントプロパティからパスを取得: {path}")
+        except Exception as e:
+            print(f"フォントパス取得エラー: {e}")
+            
+    # 日本語フォント名が判明している場合
+    if japanese_font_family:
+        try:
+            path = matplotlib.font_manager.findfont(
+                matplotlib.font_manager.FontProperties(family=japanese_font_family)
+            )
+            if path and os.path.exists(path):
+                potential_font_paths.append(path)
+                print(f"フォント名からパスを取得: {path}")
+        except Exception as e:
+            print(f"フォント名からのパス取得エラー: {e}")
+    # 利用可能なフォントパスを探す
     for path in potential_font_paths:
         if os.path.exists(path):
             font_path = path
+            print(f"WordCloud用フォントが見つかりました: {path}")
             break
-    # もし見つからなければ、matplotlibのfindfontで取得
-    if not font_path and japanese_fonts:
-        font_path = matplotlib.font_manager.findfont(japanese_fonts[0])
+    
+    # ワードクラウドのパラメータ設定
     wordcloud_params = {
         "width": 800,
         "height": 400,
@@ -361,33 +397,33 @@ def create_word_cloud(tokenized_reviews, title="頻出ワードクラウド"):
         "colormap": "viridis",
         "prefer_horizontal": 0.9,
     }
+    
+    # フォントパスが見つかった場合は設定
     if font_path:
         print(f"ワードクラウド用日本語フォント: {font_path}")
         wordcloud_params["font_path"] = font_path
     else:
-        print(
-            "警告: 日本語フォントが見つかりませんでした。ワードクラウドが正常に表示されない可能性があります。"
-        )
+        print("警告: 日本語フォントが見つかりませんでした。ワードクラウドが正常に表示されない可能性があります。")
+    
+    # ワードクラウド生成の試行
     try:
         wordcloud = WordCloud(**wordcloud_params).generate_from_frequencies(word_freq)
     except Exception as e:
         print(f"ワードクラウド生成エラー: {str(e)}")
+        
+        # フォント指定を解除して再試行
         if "font_path" in wordcloud_params:
             del wordcloud_params["font_path"]
             print("フォント指定を解除して再試行します。")
             try:
-                wordcloud = WordCloud(**wordcloud_params).generate_from_frequencies(
-                    word_freq
-                )
+                wordcloud = WordCloud(**wordcloud_params).generate_from_frequencies(word_freq)
             except Exception as e:
                 print(f"再試行も失敗: {str(e)}")
-                wordcloud = WordCloud(
-                    width=800, height=400, background_color="white"
-                ).generate_from_frequencies(word_freq)
+                # 最小限の設定で再試行
+                wordcloud = WordCloud(width=800, height=400, background_color="white").generate_from_frequencies(word_freq)
         else:
-            wordcloud = WordCloud(
-                width=800, height=400, background_color="white"
-            ).generate_from_frequencies(word_freq)
+            # 最小限の設定で再試行
+            wordcloud = WordCloud(width=800, height=400, background_color="white").generate_from_frequencies(word_freq)
     plt.figure(figsize=(10, 6))
     plt.imshow(wordcloud, interpolation="bilinear")
     plt.axis("off")
