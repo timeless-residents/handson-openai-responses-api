@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学習プラン作成 - AI学習アシスタント</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f8f9fa;
+        }
+        .sidebar {
+            background-color: #343a40;
+            color: white;
+            min-height: calc(100vh - 56px);
+            position: sticky;
+            top: 56px;
+        }
+        .sidebar a {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 10px 20px;
+            display: block;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        .sidebar a:hover {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .sidebar a.active {
+            color: white;
+            background-color: #007bff;
+        }
+        .sidebar-heading {
+            padding: 10px 20px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.5);
+        }
+        .main-content {
+            padding: 20px;
+        }
+        .plan-card {
+            border-radius: 10px;
+            border: none;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25);
+        }
+        .form-label {
+            font-weight: 500;
+        }
+        .plan-info {
+            background-color: #e9f5ff;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .plan-info-icon {
+            font-size: 2rem;
+            color: #007bff;
+        }
+        .planning-steps {
+            counter-reset: step-counter;
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .planning-steps li {
+            position: relative;
+            padding-left: 40px;
+            margin-bottom: 15px;
+        }
+        .planning-steps li::before {
+            counter-increment: step-counter;
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            background-color: #007bff;
+            color: white;
+            border-radius: 50%;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ url_for('dashboard') }}">AI学習アシスタント</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle me-1"></i> {{ current_user.username }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>プロフィール</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>設定</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt me-2"></i>ログアウト</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+                <div class="position-sticky">
+                    <div class="sidebar-heading">メインメニュー</div>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a href="{{ url_for('dashboard') }}">
+                                <i class="fas fa-tachometer-alt me-2"></i> ダッシュボード
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ url_for('select_subject') }}">
+                                <i class="fas fa-book-open me-2"></i> 学習を開始
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="active" href="{{ url_for('create_learning_plan') }}">
+                                <i class="fas fa-calendar-alt me-2"></i> 学習プラン
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ url_for('ask_question') }}">
+                                <i class="fas fa-question-circle me-2"></i> 質問する
+                            </a>
+                        </li>
+                    </ul>
+
+                    <div class="sidebar-heading mt-4">ツール</div>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a href="{{ url_for('notes') }}">
+                                <i class="fas fa-sticky-note me-2"></i> ノート
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ url_for('flashcards') }}">
+                                <i class="fas fa-clone me-2"></i> フラッシュカード
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ url_for('create_quiz') }}">
+                                <i class="fas fa-tasks me-2"></i> クイズ
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ url_for('stats') }}">
+                                <i class="fas fa-chart-bar me-2"></i> 学習統計
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="col-md-9 col-lg-10 main-content">
+                <h2 class="mb-4">パーソナライズされた学習プランを作成</h2>
+
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="card plan-card mb-4">
+                            <div class="card-body">
+                                <h3 class="card-title mb-4">学習プラン情報</h3>
+                                
+                                {% with messages = get_flashed_messages(with_categories=true) %}
+                                    {% if messages %}
+                                        {% for category, message in messages %}
+                                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                                {{ message }}
+                                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                            </div>
+                                        {% endfor %}
+                                    {% endif %}
+                                {% endwith %}
+                                
+                                <form method="POST" action="{{ url_for('create_learning_plan') }}">
+                                    {{ form.hidden_tag() }}
+                                    
+                                    <div class="mb-3">
+                                        <label for="title" class="form-label">プラン名</label>
+                                        {{ form.title(class="form-control", id="title", placeholder="例: Pythonでデータ分析を学ぶ") }}
+                                        {% if form.title.errors %}
+                                            <div class="text-danger mt-1">
+                                                {% for error in form.title.errors %}
+                                                    {{ error }}
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="subject" class="form-label">科目</label>
+                                            {{ form.subject(class="form-select", id="subject") }}
+                                            {% if form.subject.errors %}
+                                                <div class="text-danger mt-1">
+                                                    {% for error in form.subject.errors %}
+                                                        {{ error }}
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="level" class="form-label">レベル</label>
+                                            {{ form.level(class="form-select", id="level") }}
+                                            {% if form.level.errors %}
+                                                <div class="text-danger mt-1">
+                                                    {% for error in form.level.errors %}
+                                                        {{ error }}
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="goal" class="form-label">学習目標</label>
+                                        {{ form.goal(class="form-control", id="goal", rows=4, placeholder="例: Pythonの基本構文を理解し、簡単なデータ分析プロジェクトを実行できるようになること") }}
+                                        {% if form.goal.errors %}
+                                            <div class="text-danger mt-1">
+                                                {% for error in form.goal.errors %}
+                                                    {{ error }}
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                        <div class="form-text">具体的な目標を設定すると、より効果的な学習プランが作成されます。</div>
+                                    </div>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="duration" class="form-label">学習期間</label>
+                                            {{ form.duration(class="form-select", id="duration") }}
+                                            {% if form.duration.errors %}
+                                                <div class="text-danger mt-1">
+                                                    {% for error in form.duration.errors %}
+                                                        {{ error }}
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="time_per_day" class="form-label">1日の学習時間</label>
+                                            {{ form.time_per_day(class="form-select", id="time_per_day") }}
+                                            {% if form.time_per_day.errors %}
+                                                <div class="text-danger mt-1">
+                                                    {% for error in form.time_per_day.errors %}
+                                                        {{ error }}
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <label for="prior_knowledge" class="form-label">事前知識（任意）</label>
+                                        {{ form.prior_knowledge(class="form-control", id="prior_knowledge", rows=3, placeholder="例: HTMLとCSSの基本は理解しています。JavaScriptは初心者です。") }}
+                                        {% if form.prior_knowledge.errors %}
+                                            <div class="text-danger mt-1">
+                                                {% for error in form.prior_knowledge.errors %}
+                                                    {{ error }}
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="d-grid">
+                                        {{ form.submit(class="btn btn-primary btn-lg") }}
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-4">
+                        <div class="card plan-card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-3">
+                                    <i class="fas fa-lightbulb plan-info-icon me-3"></i>
+                                    <h4 class="mb-0">学習プランとは？</h4>
+                                </div>
+                                <p>学習プランは、あなたの目標、レベル、そして利用可能な時間に合わせて最適化された学習スケジュールです。</p>
+                                
+                                <h5 class="mt-4 mb-3">学習プランの利点:</h5>
+                                <ul>
+                                    <li>体系的な学習パスを提供</li>
+                                    <li>学習時間の効率的な活用</li>
+                                    <li>目標達成までの明確なステップ</li>
+                                    <li>進捗管理が容易に</li>
+                                    <li>モチベーションの維持をサポート</li>
+                                </ul>
+                                
+                                <h5 class="mt-4 mb-3">学習プランの作成プロセス:</h5>
+                                <ol class="planning-steps">
+                                    <li>科目とレベルを選択</li>
+                                    <li>具体的な学習目標を設定</li>
+                                    <li>学習期間と時間を決定</li>
+                                    <li>AIが最適な学習パスを生成</li>
+                                    <li>プランに沿って学習を進める</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
