@@ -40,7 +40,17 @@ DetectorFactory.seed = 0
 try:
     nltk.data.find('tokenizers/punkt')
 except LookupError:
+    print("NLTKのpunktデータをダウンロードしています...")
     nltk.download('punkt', quiet=True)
+
+# NLTK言語検出のためのデータをダウンロード
+# punktデータは言語によって必要な場合があります
+for lang in ['english', 'french', 'german', 'italian', 'spanish', 'portuguese', 'dutch', 'japanese']:
+    try:
+        nltk.data.find(f'tokenizers/punkt/{lang}.pickle')
+    except LookupError:
+        print(f"NLTK {lang} データをダウンロードしています...")
+        nltk.download(f'punkt', quiet=True)
 
 # Python 3.7以降の場合、標準入出力のエンコーディングをUTF-8に設定
 if sys.version_info >= (3, 7):
@@ -362,7 +372,16 @@ def analyze_document(text: str, language: str) -> Dict[str, Any]:
     # 簡易的な文書分析を実行
     total_chars = len(text)
     total_words = len(text.split())
-    sentences = sent_tokenize(text)
+    
+    # 言語に応じた文の分割処理
+    try:
+        sentences = sent_tokenize(text)
+    except Exception as e:
+        print(f"文の分割処理でエラーが発生しました: {str(e)}")
+        # エラーが発生した場合は改行で分割するフォールバック
+        sentences = [s.strip() for s in text.split('\n') if s.strip()]
+        print(f"改行による分割を使用します。{len(sentences)}の段落が検出されました。")
+    
     total_sentences = len(sentences)
     
     # 平均文長を計算
@@ -428,11 +447,21 @@ def save_output(content: str, file_path: str, mode: str = "w") -> None:
         traceback.print_exc()
 
 
-def plot_sentence_distribution(analysis: Dict[str, Any], file_path: str) -> None:
+def plot_sentence_distribution(analysis: Dict[str, Any], text: str, file_path: str) -> None:
     """文の長さの分布をプロットして保存します。"""
     try:
+        # 言語に応じた文の分割処理
+        try:
+            sentences = sent_tokenize(text)
+        except Exception:
+            # エラーが発生した場合は改行で分割するフォールバック
+            sentences = [s.strip() for s in text.split('\n') if s.strip()]
+        
+        # 文の長さ（単語数）を計算
+        sentence_lengths = [len(s.split()) for s in sentences]
+        
         plt.figure(figsize=(10, 6))
-        sns.histplot([len(s.split()) for s in sent_tokenize(text)], bins=20, kde=True)
+        sns.histplot(sentence_lengths, bins=20, kde=True)
         plt.title(f"文の長さの分布 - {analysis['language_name']}")
         plt.xlabel("単語数")
         plt.ylabel("頻度")
@@ -570,7 +599,7 @@ def main():
             
             # 統計グラフを生成
             graph_file = os.path.join(output_dir, f"{file_base}_sentence_dist_{timestamp}.png")
-            plot_sentence_distribution(analysis, graph_file)
+            plot_sentence_distribution(analysis, content, graph_file)
         
         print("処理が完了しました。")
         
