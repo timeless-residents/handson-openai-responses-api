@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学習計画作成 - 教育コンテンツ生成システム</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+        .header {
+            background-color: #343a40;
+            color: white;
+            padding: 1.5rem 0;
+            margin-bottom: 2rem;
+        }
+        .main-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .form-container {
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header text-center">
+        <h1>学習計画作成</h1>
+        <p class="lead">あなた専用の学習計画を生成しましょう</p>
+    </div>
+
+    <div class="container main-container">
+        <div class="row">
+            <div class="col-md-12">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{{ url_for('select_subject') }}">科目選択</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">学習計画作成</li>
+                    </ol>
+                </nav>
+                
+                <h2>学習計画作成</h2>
+                <p>AIがあなたの目標と希望に合わせた学習計画を作成します。以下のフォームに必要事項を入力してください。</p>
+                
+                <div class="alert alert-info">
+                    <p><strong>効果的な学習計画のために:</strong></p>
+                    <ul>
+                        <li>具体的な学習目標を設定しましょう</li>
+                        <li>現実的な学習期間を選びましょう</li>
+                        <li>学習に使える時間を考慮しましょう</li>
+                    </ul>
+                </div>
+                
+                <div class="form-container">
+                    <form action="{{ url_for('create_plan') }}" method="post">
+                        <div class="mb-3">
+                            <label for="subject" class="form-label">科目</label>
+                            <select class="form-select" id="subject" name="subject" required>
+                                <option value="" selected disabled>選択してください</option>
+                                {% for subject_key, subject in subjects.items() %}
+                                <option value="{{ subject_key }}">{{ subject.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="topic" class="form-label">トピック</label>
+                            <select class="form-select" id="topic" name="topic" required disabled>
+                                <option value="" selected disabled>先に科目を選択してください</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="goals" class="form-label">学習目標</label>
+                            <textarea class="form-control" id="goals" name="goals" rows="3" placeholder="例: 微分の基本概念を理解し、簡単な関数の微分ができるようになりたい" required></textarea>
+                            <div class="form-text">具体的な目標を書くほど、より適切な学習計画が作成されます。</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="duration" class="form-label">学習期間</label>
+                            <select class="form-select" id="duration" name="duration" required>
+                                <option value="2週間">2週間</option>
+                                <option value="1ヶ月" selected>1ヶ月</option>
+                                <option value="2ヶ月">2ヶ月</option>
+                                <option value="3ヶ月">3ヶ月</option>
+                                <option value="半年">半年</option>
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">学習計画を作成</button>
+                        <a href="{{ url_for('select_subject') }}" class="btn btn-secondary">戻る</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-center mt-5 mb-3">
+        <p>&copy; 2025 教育コンテンツ生成システム - OpenAI Responses API ハンズオン</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 科目選択に基づいてトピックを動的に更新
+            const subjectSelect = document.getElementById('subject');
+            const topicSelect = document.getElementById('topic');
+            
+            // 科目データ
+            const subjectsData = {
+                {% for subject_key, subject in subjects.items() %}
+                "{{ subject_key }}": [
+                    {% for topic in subject.topics %}
+                    "{{ topic }}"{% if not loop.last %},{% endif %}
+                    {% endfor %}
+                ]{% if not loop.last %},{% endif %}
+                {% endfor %}
+            };
+            
+            subjectSelect.addEventListener('change', function() {
+                const selectedSubject = this.value;
+                
+                // トピックセレクトをリセット
+                topicSelect.innerHTML = '';
+                topicSelect.disabled = true;
+                
+                if (selectedSubject) {
+                    // 選択された科目のトピックを追加
+                    const topics = subjectsData[selectedSubject];
+                    
+                    topics.forEach(topic => {
+                        const option = document.createElement('option');
+                        option.value = topic;
+                        option.textContent = topic;
+                        topicSelect.appendChild(option);
+                    });
+                    
+                    topicSelect.disabled = false;
+                } else {
+                    // 科目が選択されていない場合のデフォルトオプション
+                    const option = document.createElement('option');
+                    option.value = '';
+                    option.textContent = '先に科目を選択してください';
+                    option.disabled = true;
+                    option.selected = true;
+                    topicSelect.appendChild(option);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

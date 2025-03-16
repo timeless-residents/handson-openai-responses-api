@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ subject.name }} - {{ topic }} - 教育コンテンツ生成システム</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+        .header {
+            background-color: #343a40;
+            color: white;
+            padding: 1.5rem 0;
+            margin-bottom: 2rem;
+        }
+        .main-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .content-section {
+            font-size: 1.1rem;
+            line-height: 1.7;
+        }
+        .content-section h1 { font-size: 2.2rem; margin-top: 1.5rem; }
+        .content-section h2 { font-size: 1.8rem; margin-top: 1.5rem; }
+        .content-section h3 { font-size: 1.5rem; margin-top: 1.2rem; }
+        .content-section pre {
+            background-color: #f5f5f5;
+            padding: 1rem;
+            border-radius: 5px;
+        }
+        .content-section img {
+            max-width: 100%;
+            height: auto;
+        }
+        .action-buttons {
+            margin: 2rem 0;
+        }
+        #questionForm {
+            display: none;
+            margin-top: 1.5rem;
+        }
+        #answerResult {
+            margin-top: 1.5rem;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="header text-center">
+        <h1>{{ subject.name }} - {{ topic }}</h1>
+        <p class="lead">{{ user_session['profile']['level'] }} 向け学習コンテンツ</p>
+    </div>
+
+    <div class="container main-container">
+        <div class="row">
+            <div class="col-md-12 mb-4">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{{ url_for('select_subject') }}">科目選択</a></li>
+                        <li class="breadcrumb-item"><a href="{{ url_for('select_topic', subject=subject_key) }}">{{ subject.name }}</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">{{ topic }}</li>
+                    </ol>
+                </nav>
+                
+                <div class="action-buttons">
+                    <button id="askQuestionBtn" class="btn btn-outline-primary">質問する</button>
+                    <a href="{{ url_for('practice', subject=subject_key, topic=topic) }}" class="btn btn-outline-success">練習問題に挑戦</a>
+                    <button id="detailExplanationBtn" class="btn btn-outline-info">詳細な説明を見る</button>
+                </div>
+                
+                <div id="questionForm" class="card p-3">
+                    <h4>質問入力</h4>
+                    <div class="mb-3">
+                        <textarea id="questionText" class="form-control" rows="3" placeholder="「{{ topic }}」に関する質問を入力してください..."></textarea>
+                    </div>
+                    <div>
+                        <button id="submitQuestionBtn" class="btn btn-primary">質問を送信</button>
+                        <button id="cancelQuestionBtn" class="btn btn-secondary">キャンセル</button>
+                    </div>
+                </div>
+                
+                <div id="answerResult" class="card p-3">
+                    <h4>回答</h4>
+                    <div id="answerContent" class="content-section"></div>
+                </div>
+                
+                <hr>
+                
+                <div class="content-section">
+                    {{ content|safe }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-center mt-5 mb-3">
+        <p>&copy; 2025 教育コンテンツ生成システム - OpenAI Responses API ハンズオン</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 質問フォームの表示/非表示制御
+            document.getElementById('askQuestionBtn').addEventListener('click', function() {
+                document.getElementById('questionForm').style.display = 'block';
+                document.getElementById('answerResult').style.display = 'none';
+            });
+            
+            document.getElementById('cancelQuestionBtn').addEventListener('click', function() {
+                document.getElementById('questionForm').style.display = 'none';
+            });
+            
+            // 質問送信処理
+            document.getElementById('submitQuestionBtn').addEventListener('click', function() {
+                const questionText = document.getElementById('questionText').value.trim();
+                if (!questionText) {
+                    alert('質問を入力してください');
+                    return;
+                }
+                
+                // ボタンを無効化して処理中表示
+                const submitBtn = document.getElementById('submitQuestionBtn');
+                const originalText = submitBtn.innerText;
+                submitBtn.disabled = true;
+                submitBtn.innerText = '処理中...';
+                
+                // APIリクエスト送信
+                fetch('/ask_question', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        subject: '{{ subject_key }}',
+                        topic: '{{ topic }}',
+                        question: questionText
+                    }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // 回答表示
+                    document.getElementById('answerContent').innerHTML = data.answer;
+                    document.getElementById('answerResult').style.display = 'block';
+                    
+                    // 質問フォームを非表示
+                    document.getElementById('questionForm').style.display = 'none';
+                    
+                    // ボタン状態の復元
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = originalText;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('エラーが発生しました。もう一度お試しください。');
+                    
+                    // ボタン状態の復元
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = originalText;
+                });
+            });
+            
+            // 詳細説明ボタン
+            document.getElementById('detailExplanationBtn').addEventListener('click', function() {
+                const rawContent = `{{ raw_content|replace('\n', '\\n')|replace('\"', '\\\"')|safe }}`;
+                const question = prompt('詳細な説明が欲しい概念や用語を入力してください:');
+                
+                if (question) {
+                    window.location.href = `/ask_question?subject={{ subject_key }}&topic={{ topic }}&question=${encodeURIComponent(question)}`;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

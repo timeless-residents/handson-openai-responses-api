@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学習計画 - {{ subject.name }} - {{ topic }} - 教育コンテンツ生成システム</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+        .header {
+            background-color: #343a40;
+            color: white;
+            padding: 1.5rem 0;
+            margin-bottom: 2rem;
+        }
+        .main-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .content-section {
+            font-size: 1.1rem;
+            line-height: 1.7;
+        }
+        .content-section h1 { font-size: 2.2rem; margin-top: 1.5rem; }
+        .content-section h2 { font-size: 1.8rem; margin-top: 1.5rem; }
+        .content-section h3 { font-size: 1.5rem; margin-top: 1.2rem; }
+        .content-section ul, .content-section ol {
+            margin-bottom: 1rem;
+        }
+        .plan-header {
+            background-color: #f0f8ff;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+        }
+        .plan-meta {
+            margin-bottom: 1rem;
+        }
+        .plan-meta dt {
+            font-weight: bold;
+        }
+        @media print {
+            .no-print {
+                display: none;
+            }
+            body {
+                background-color: white;
+            }
+            .main-container {
+                box-shadow: none;
+                max-width: 100%;
+                padding: 0;
+            }
+            .header {
+                background-color: white !important;
+                color: black !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header text-center">
+        <h1>学習計画</h1>
+        <p class="lead">{{ subject.name }} - {{ topic }}</p>
+    </div>
+
+    <div class="container main-container">
+        <div class="row">
+            <div class="col-md-12 mb-4">
+                <nav aria-label="breadcrumb" class="no-print">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{{ url_for('select_subject') }}">科目選択</a></li>
+                        <li class="breadcrumb-item"><a href="{{ url_for('create_plan') }}">学習計画作成</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">計画結果</li>
+                    </ol>
+                </nav>
+                
+                <div class="plan-header">
+                    <h2>{{ subject.name }} - {{ topic }} 学習計画</h2>
+                    
+                    <dl class="row plan-meta">
+                        <dt class="col-sm-3">作成日:</dt>
+                        <dd class="col-sm-9">{{ '%Y年%m月%d日'|strftime }}</dd>
+                        
+                        <dt class="col-sm-3">学習者:</dt>
+                        <dd class="col-sm-9">{{ user_session['profile']['name'] }} ({{ user_session['profile']['level'] }})</dd>
+                        
+                        <dt class="col-sm-3">学習期間:</dt>
+                        <dd class="col-sm-9">{{ duration }}</dd>
+                        
+                        <dt class="col-sm-3">学習目標:</dt>
+                        <dd class="col-sm-9">{{ goals }}</dd>
+                    </dl>
+                    
+                    <div class="no-print">
+                        <button class="btn btn-outline-primary" onclick="window.print()">印刷する</button>
+                        <a href="{{ url_for('learning', subject=subject_key, topic=topic) }}" class="btn btn-primary">この内容を学習する</a>
+                    </div>
+                </div>
+                
+                <div class="content-section">
+                    {{ plan|safe }}
+                </div>
+                
+                <div class="mt-4 no-print">
+                    <h3>次のステップ</h3>
+                    <p>作成された学習計画に沿って学習を進めましょう。定期的に進捗を確認し、必要に応じて計画を調整してください。</p>
+                    
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{{ url_for('create_plan') }}" class="btn btn-secondary">新しい計画を作成</a>
+                        <a href="{{ url_for('select_subject') }}" class="btn btn-primary">科目選択に戻る</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-center mt-5 mb-3 no-print">
+        <p>&copy; 2025 教育コンテンツ生成システム - OpenAI Responses API ハンズオン</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

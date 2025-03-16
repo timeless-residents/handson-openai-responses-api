@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ subject.name }} トピック選択 - 教育コンテンツ生成システム</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+        .header {
+            background-color: #343a40;
+            color: white;
+            padding: 1.5rem 0;
+            margin-bottom: 2rem;
+        }
+        .main-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .topic-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .topic-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="header text-center">
+        <h1>{{ subject.name }}</h1>
+        <p class="lead">学習したいトピックを選択してください</p>
+    </div>
+
+    <div class="container main-container">
+        <div class="row">
+            <div class="col-md-12 mb-4">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{{ url_for('select_subject') }}">科目選択</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">{{ subject.name }}</li>
+                    </ol>
+                </nav>
+                
+                <h2>トピック選択</h2>
+                <hr>
+            </div>
+        </div>
+
+        <div class="row">
+            {% for topic in topics %}
+            <div class="col-md-6 mb-4">
+                <a href="{{ url_for('learning', subject=subject_key, topic=topic) }}" class="text-decoration-none">
+                    <div class="card topic-card h-100">
+                        <div class="card-body">
+                            <h3 class="card-title">{{ topic }}</h3>
+                            <p class="card-text text-muted">
+                                {{ subject.name }}の「{{ topic }}」について学びます。
+                            </p>
+                        </div>
+                        <div class="card-footer d-flex justify-content-between align-items-center">
+                            <span>{{ user_session['profile']['level'] }} 向け</span>
+                            <span class="btn btn-sm btn-primary">学習開始</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <a href="{{ url_for('select_subject') }}" class="btn btn-secondary">科目選択に戻る</a>
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-center mt-5 mb-3">
+        <p>&copy; 2025 教育コンテンツ生成システム - OpenAI Responses API ハンズオン</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

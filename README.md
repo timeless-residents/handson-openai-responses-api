@@ -98,7 +98,7 @@ python showroom/usecase-000/main.py
 - **usecase-040**: [市民向け行政サービス案内](showroom/usecase-040/README.md) - 行政手続きや公共サービスに関する情報を提供する対話型市民サポートシステム
 - **usecase-041**: [医療情報の理解支援と説明](showroom/usecase-041/README.md) -  ダミー医療情報を提供する対話型システム
 - **usecase-042**: [災害情報の整理と配信支援](showroom/usecase-042/README.md) - 災害情報の分析と効果的な情報発信を支援するプラットフォーム
-- **usecase-043**: 教育コンテンツの生成と適応
+- **usecase-043**: [教育コンテンツの生成と適応](showroom/usecase-043/README.md) - 学習者の理解度に合わせたパーソナライズされた教育コンテンツを提供するシステム
 - **usecase-044**: バリアフリー情報アクセス支援
 - **usecase-045**: 公共データの可視化と説明
 
