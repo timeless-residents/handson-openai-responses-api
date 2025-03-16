@@ -29,24 +29,71 @@ from sklearn.decomposition import LatentDirichletAllocation
 from dotenv import load_dotenv
 import openai
 
-# 日本語フォント設定（Matplotlibで日本語を表示するため）
-# 利用可能なフォントがない場合はエラーが出るので、try-exceptで囲む
-try:
-    # macOSの場合
-    if sys.platform.startswith('darwin'):
-        matplotlib.rcParams['font.family'] = 'AppleGothic'
-    # Windowsの場合
-    elif sys.platform.startswith('win'):
-        matplotlib.rcParams['font.family'] = 'MS Gothic'
-    # Linuxの場合
-    else:
-        matplotlib.rcParams['font.family'] = 'IPAGothic'
+# 日本語フォント設定
+# まず利用可能なフォントを調べる
+def find_available_japanese_font():
+    """システムで利用可能な日本語フォントを見つけます"""
+    available_fonts = []
     
-    # フォールバック設定
-    matplotlib.rcParams['axes.unicode_minus'] = False  # マイナス記号を正しく表示
-except Exception as e:
-    print(f"警告: 日本語フォントの設定に失敗しました。グラフのタイトルやラベルが文字化けする可能性があります。")
-    print(f"エラー詳細: {str(e)}")
+    # matplotlibがフォントを認識しているか確認
+    import matplotlib.font_manager as fm
+    font_list = fm.findSystemFonts()
+    
+    # 日本語フォント候補（優先順位順）
+    japanese_font_names = [
+        # macOS
+        'Hiragino Sans GB', 'Hiragino Maru Gothic Pro', 'Hiragino Kaku Gothic Pro', 
+        'AppleGothic', 'YuGothic', 'Osaka',
+        # Windows
+        'MS Gothic', 'Meiryo', 'Yu Gothic', 'MS Mincho', 'Yu Mincho',
+        # Linux
+        'Noto Sans CJK JP', 'IPAGothic', 'IPAPGothic', 'VL Gothic', 'Sazanami Gothic',
+        # 代替
+        'Arial Unicode MS', 'Dejavu Sans'
+    ]
+    
+    # matplotlibのフォントファミリー一覧から日本語フォントを探す
+    available_families = set(f.name for f in fm.fontManager.ttflist)
+    for font_name in japanese_font_names:
+        if font_name in available_families:
+            available_fonts.append(font_name)
+    
+    # フォントファイルのパスから日本語フォントを探す
+    if not available_fonts:
+        for font_path in font_list:
+            font_path = font_path.lower()
+            if any(keyword in font_path for keyword in ['hiragino', 'gothic', 'meiryo', 'mincho', 'msgothic', 'yumin', 'yugoth', 'ipa', 'noto', 'cjk']):
+                try:
+                    font = fm.FontProperties(fname=font_path)
+                    available_fonts.append(font_path)
+                except:
+                    pass
+    
+    return available_fonts
+
+# 利用可能な日本語フォントを取得
+japanese_fonts = find_available_japanese_font()
+
+# 日本語フォント設定の試行
+if japanese_fonts:
+    print(f"利用可能な日本語フォント: {japanese_fonts[0]}")
+    try:
+        # フォントファイルパスの場合
+        if os.path.exists(japanese_fonts[0]):
+            matplotlib.font_manager.fontManager.addfont(japanese_fonts[0])
+            prop = matplotlib.font_manager.FontProperties(fname=japanese_fonts[0])
+            matplotlib.rcParams['font.family'] = prop.get_name()
+        # フォント名の場合
+        else:
+            matplotlib.rcParams['font.family'] = japanese_fonts[0]
+        
+        # フォールバック設定
+        matplotlib.rcParams['axes.unicode_minus'] = False  # マイナス記号を正しく表示
+        print("日本語フォント設定完了")
+    except Exception as e:
+        print(f"警告: 日本語フォントの設定に失敗しました: {str(e)}")
+else:
+    print("警告: 利用可能な日本語フォントが見つかりませんでした。グラフの日本語が正しく表示されない可能性があります。")
 
 # 商品レビューデータを読み込み
 from review_data import (
@@ -159,10 +206,29 @@ def calculate_review_trends(reviews_df):
 def plot_rating_distribution(rating_counts, title="評価点の分布"):
     """評価点の分布を棒グラフで可視化します。"""
     plt.figure(figsize=(10, 6))
-    sns.barplot(x=rating_counts.index, y=rating_counts.values)
-    plt.title(title)
-    plt.xlabel("評価点")
-    plt.ylabel("レビュー数")
+    
+    # seabornの設定
+    sns.set(font_scale=1.2)  # フォントサイズを大きく
+    
+    # 棒グラフ
+    ax = sns.barplot(x=rating_counts.index, y=rating_counts.values, palette="viridis")
+    
+    # テキスト装飾
+    plt.title(title, fontsize=18, pad=20)
+    plt.xlabel("評価点", fontsize=14, labelpad=10)
+    plt.ylabel("レビュー数", fontsize=14, labelpad=10)
+    
+    # 目盛り設定
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+    
+    # 数値ラベル追加
+    for i, v in enumerate(rating_counts.values):
+        ax.text(i, v + 0.1, str(v), ha='center', fontsize=11)
+    
+    # グリッド線を追加
+    plt.grid(axis='y', linestyle='--', alpha=0.7)
+    
     plt.tight_layout()
     return plt
 
@@ -171,21 +237,41 @@ def plot_review_trends(monthly_counts, monthly_ratings, title="レビュート�
     """レビュー数と評価点の時間的推移を可視化します。"""
     fig, ax1 = plt.subplots(figsize=(12, 6))
     
+    # 第1軸: レビュー数
     color = "tab:blue"
-    ax1.set_xlabel("月")
-    ax1.set_ylabel("レビュー数", color=color)
-    ax1.plot(monthly_counts.index, monthly_counts.values, color=color, marker="o")
-    ax1.tick_params(axis="y", labelcolor=color)
+    ax1.set_xlabel("月", fontsize=14, labelpad=10)
+    ax1.set_ylabel("レビュー数", color=color, fontsize=14, labelpad=10)
+    ax1.plot(monthly_counts.index, monthly_counts.values, color=color, marker="o", linewidth=2)
+    ax1.tick_params(axis="y", labelcolor=color, labelsize=12)
+    ax1.tick_params(axis="x", labelsize=12, rotation=45)
     
+    # 数値ラベルの追加
+    for i, v in enumerate(monthly_counts.values):
+        ax1.text(i, v + 0.1, str(v), ha='center', color=color, fontsize=11)
+    
+    # 第2軸: 平均評価点
     ax2 = ax1.twinx()
     color = "tab:red"
-    ax2.set_ylabel("平均評価点", color=color)
-    ax2.plot(monthly_ratings.index, monthly_ratings.values, color=color, marker="s")
-    ax2.tick_params(axis="y", labelcolor=color)
+    ax2.set_ylabel("平均評価点", color=color, fontsize=14, labelpad=10)
+    ax2.plot(monthly_ratings.index, monthly_ratings.values, color=color, marker="s", linewidth=2)
+    ax2.tick_params(axis="y", labelcolor=color, labelsize=12)
+    
+    # 数値ラベルの追加（小数点1桁まで）
+    for i, v in enumerate(monthly_ratings.values):
+        ax2.text(i, v + 0.05, f"{v:.1f}", ha='center', color=color, fontsize=11)
+    
+    # グリッド線
+    ax1.grid(axis='y', linestyle='--', alpha=0.3)
+    
+    # タイトル
+    plt.title(title, fontsize=18, pad=20)
+    
+    # 凡例
+    ax1.plot([], [], color="tab:blue", marker="o", linewidth=2, label="レビュー数")
+    ax2.plot([], [], color="tab:red", marker="s", linewidth=2, label="平均評価点")
+    plt.legend(fontsize=12, loc="best")
     
     fig.tight_layout()
-    plt.title(title)
-    plt.xticks(rotation=45)
     
     return plt
 
@@ -197,71 +283,98 @@ def create_word_cloud(tokenized_reviews, title="頻出ワードクラウド"):
     # 単語の出現頻度をカウント
     word_freq = Counter(all_tokens)
     
-    # 日本語フォントの設定
+    # より広範な日本語フォント探索
     font_path = None
     
-    # OSに応じたフォントパスの設定
-    if sys.platform.startswith('darwin'):  # macOS
-        possible_fonts = [
+    # 一般的な日本語フォントのパスを追加（システムに応じて）
+    potential_font_paths = []
+    
+    # macOS
+    if sys.platform.startswith('darwin'):
+        potential_font_paths.extend([
             '/System/Library/Fonts/ヒラギノ角ゴシック W4.ttc',
             '/System/Library/Fonts/AppleGothic.ttf',
-            '/System/Library/Fonts/ヒラギノ丸ゴ ProN W4.ttc'
-        ]
-    elif sys.platform.startswith('win'):  # Windows
-        possible_fonts = [
+            '/System/Library/Fonts/ヒラギノ丸ゴ ProN W4.ttc',
+            '/Library/Fonts/Osaka.ttf',
+            '/Library/Fonts/ヒラギノ明朝 ProN.ttc',
+            '/System/Library/Fonts/Supplemental/Arial Unicode.ttf'
+        ])
+    # Windows
+    elif sys.platform.startswith('win'):
+        potential_font_paths.extend([
             'C:\\Windows\\Fonts\\msgothic.ttc',
-            'C:\\Windows\\Fonts\\meiryo.ttc'
-        ]
-    else:  # Linux
-        possible_fonts = [
+            'C:\\Windows\\Fonts\\meiryo.ttc',
+            'C:\\Windows\\Fonts\\YuGothic.ttf',
+            'C:\\Windows\\Fonts\\MSMincho.ttc',
+            'C:\\Windows\\Fonts\\Arial Unicode.ttf'
+        ])
+    # Linux
+    else:
+        potential_font_paths.extend([
             '/usr/share/fonts/truetype/fonts-japanese-gothic.ttf',
-            '/usr/share/fonts/truetype/ipafont-gothic/ipag.ttf'
-        ]
+            '/usr/share/fonts/truetype/ipafont-gothic/ipag.ttf',
+            '/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc',
+            '/usr/share/fonts/truetype/vlgothic/VL-Gothic-Regular.ttf',
+            '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
+        ])
+    
+    # matplotlibで見つかった日本語フォント
+    if japanese_fonts:
+        # パスの場合
+        for font in japanese_fonts:
+            if os.path.exists(font):
+                potential_font_paths.append(font)
     
     # 利用可能なフォントを探す
-    for font in possible_fonts:
-        if os.path.exists(font):
-            font_path = font
+    for font_path in potential_font_paths:
+        if os.path.exists(font_path):
             break
+    else:
+        font_path = None  # すべてのパスが存在しない場合
+    
+    # ワードクラウドの設定
+    wordcloud_params = {
+        "width": 800, 
+        "height": 400,
+        "background_color": "white",
+        "max_words": 100,
+        "contour_width": 3,
+        "contour_color": "steelblue",
+        "colormap": "viridis",
+        "prefer_horizontal": 0.9  # 縦書きも許容
+    }
+    
+    # 日本語フォントが見つかった場合は追加
+    if font_path:
+        print(f"ワードクラウド用日本語フォント: {font_path}")
+        wordcloud_params["font_path"] = font_path
+    else:
+        print("警告: 日本語フォントが見つかりませんでした。ワードクラウドが正常に表示されない可能性があります。")
     
     # ワードクラウドの作成
     try:
-        if font_path:
-            wordcloud = WordCloud(
-                font_path=font_path,  # 日本語フォントパス
-                width=800,
-                height=400,
-                background_color="white",
-                max_words=100,
-                contour_width=3,
-                contour_color="steelblue",
-            ).generate_from_frequencies(word_freq)
-        else:
-            print("警告: 適切な日本語フォントが見つかりませんでした。デフォルトフォントを使用します。")
-            wordcloud = WordCloud(
-                width=800,
-                height=400,
-                background_color="white",
-                max_words=100,
-                contour_width=3,
-                contour_color="steelblue",
-            ).generate_from_frequencies(word_freq)
+        wordcloud = WordCloud(**wordcloud_params).generate_from_frequencies(word_freq)
     except Exception as e:
         print(f"ワードクラウド生成エラー: {str(e)}")
-        print("デフォルト設定でワードクラウドを生成します。")
-        wordcloud = WordCloud(
-            width=800,
-            height=400,
-            background_color="white",
-            max_words=100,
-            contour_width=3,
-            contour_color="steelblue",
-        ).generate_from_frequencies(word_freq)
+        # 失敗した場合はフォントを除外して再試行
+        if "font_path" in wordcloud_params:
+            del wordcloud_params["font_path"]
+            print("フォント指定を解除して再試行します。")
+            try:
+                wordcloud = WordCloud(**wordcloud_params).generate_from_frequencies(word_freq)
+            except Exception as e:
+                print(f"再試行も失敗: {str(e)}")
+                # 最小限のパラメータで試行
+                wordcloud = WordCloud(width=800, height=400, background_color="white").generate_from_frequencies(word_freq)
+        else:
+            # 最小限のパラメータで試行
+            wordcloud = WordCloud(width=800, height=400, background_color="white").generate_from_frequencies(word_freq)
     
+    # グラフ描画
     plt.figure(figsize=(10, 6))
     plt.imshow(wordcloud, interpolation="bilinear")
     plt.axis("off")
-    plt.title(title)
+    plt.title(title, fontsize=16)  # フォントサイズを大きく
     plt.tight_layout()
     
     return plt, word_freq
