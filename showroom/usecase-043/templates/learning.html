@@ -108,74 +108,160 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // 質問フォームの表示/非表示制御
-            document.getElementById('askQuestionBtn').addEventListener('click', function() {
-                document.getElementById('questionForm').style.display = 'block';
-                document.getElementById('answerResult').style.display = 'none';
-            });
-            
-            document.getElementById('cancelQuestionBtn').addEventListener('click', function() {
-                document.getElementById('questionForm').style.display = 'none';
-            });
-            
-            // 質問送信処理
-            document.getElementById('submitQuestionBtn').addEventListener('click', function() {
-                const questionText = document.getElementById('questionText').value.trim();
-                if (!questionText) {
-                    alert('質問を入力してください');
-                    return;
+            try {
+                console.log('学習ページの初期化を開始します...');
+                
+                // 各要素の存在確認
+                const askQuestionBtn = document.getElementById('askQuestionBtn');
+                const cancelQuestionBtn = document.getElementById('cancelQuestionBtn');
+                const submitQuestionBtn = document.getElementById('submitQuestionBtn');
+                const detailExplanationBtn = document.getElementById('detailExplanationBtn');
+                const questionForm = document.getElementById('questionForm');
+                const answerResult = document.getElementById('answerResult');
+                
+                console.log('質問ボタン要素:', askQuestionBtn);
+                console.log('キャンセルボタン要素:', cancelQuestionBtn);
+                console.log('送信ボタン要素:', submitQuestionBtn);
+                console.log('詳細説明ボタン要素:', detailExplanationBtn);
+                
+                // 質問フォームの表示/非表示制御
+                if (askQuestionBtn) {
+                    askQuestionBtn.addEventListener('click', function(e) {
+                        console.log('質問ボタンがクリックされました');
+                        e.preventDefault();
+                        if (questionForm) questionForm.style.display = 'block';
+                        if (answerResult) answerResult.style.display = 'none';
+                    });
+                } else {
+                    console.error('askQuestionBtn 要素が見つかりません');
                 }
                 
-                // ボタンを無効化して処理中表示
-                const submitBtn = document.getElementById('submitQuestionBtn');
-                const originalText = submitBtn.innerText;
-                submitBtn.disabled = true;
-                submitBtn.innerText = '処理中...';
-                
-                // APIリクエスト送信
-                fetch('/ask_question', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        subject: '{{ subject_key }}',
-                        topic: '{{ topic }}',
-                        question: questionText
-                    }),
-                })
-                .then(response => response.json())
-                .then(data => {
-                    // 回答表示
-                    document.getElementById('answerContent').innerHTML = data.answer;
-                    document.getElementById('answerResult').style.display = 'block';
-                    
-                    // 質問フォームを非表示
-                    document.getElementById('questionForm').style.display = 'none';
-                    
-                    // ボタン状態の復元
-                    submitBtn.disabled = false;
-                    submitBtn.innerText = originalText;
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('エラーが発生しました。もう一度お試しください。');
-                    
-                    // ボタン状態の復元
-                    submitBtn.disabled = false;
-                    submitBtn.innerText = originalText;
-                });
-            });
-            
-            // 詳細説明ボタン
-            document.getElementById('detailExplanationBtn').addEventListener('click', function() {
-                const rawContent = `{{ raw_content|replace('\n', '\\n')|replace('\"', '\\\"')|safe }}`;
-                const question = prompt('詳細な説明が欲しい概念や用語を入力してください:');
-                
-                if (question) {
-                    window.location.href = `/ask_question?subject={{ subject_key }}&topic={{ topic }}&question=${encodeURIComponent(question)}`;
+                if (cancelQuestionBtn) {
+                    cancelQuestionBtn.addEventListener('click', function(e) {
+                        console.log('キャンセルボタンがクリックされました');
+                        e.preventDefault();
+                        if (questionForm) questionForm.style.display = 'none';
+                    });
                 }
-            });
+                
+                // 質問送信処理
+                if (submitQuestionBtn) {
+                    submitQuestionBtn.addEventListener('click', function(e) {
+                        try {
+                            console.log('送信ボタンがクリックされました');
+                            e.preventDefault();
+                            
+                            const questionTextArea = document.getElementById('questionText');
+                            if (!questionTextArea) {
+                                console.error('questionText 要素が見つかりません');
+                                alert('エラー: 質問入力フィールドが見つかりません');
+                                return;
+                            }
+                            
+                            const questionText = questionTextArea.value.trim();
+                            if (!questionText) {
+                                alert('質問を入力してください');
+                                return;
+                            }
+                            
+                            console.log('送信する質問:', questionText);
+                            
+                            // ボタンを無効化して処理中表示
+                            const originalText = submitQuestionBtn.innerText;
+                            submitQuestionBtn.disabled = true;
+                            submitQuestionBtn.innerText = '処理中...';
+                            
+                            // APIリクエスト送信
+                            fetch('/ask_question', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    subject: '{{ subject_key }}',
+                                    topic: '{{ topic }}',
+                                    question: questionText
+                                }),
+                            })
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error('サーバーからのレスポンスが正常ではありません: ' + response.status);
+                                }
+                                return response.json();
+                            })
+                            .then(data => {
+                                console.log('回答データを受信:', data);
+                                
+                                // 回答表示
+                                const answerContentElement = document.getElementById('answerContent');
+                                if (answerContentElement) {
+                                    answerContentElement.innerHTML = data.answer;
+                                } else {
+                                    console.error('answerContent 要素が見つかりません');
+                                }
+                                
+                                if (answerResult) {
+                                    answerResult.style.display = 'block';
+                                } else {
+                                    console.error('answerResult 要素が見つかりません');
+                                }
+                                
+                                // 質問フォームを非表示
+                                if (questionForm) {
+                                    questionForm.style.display = 'none';
+                                }
+                                
+                                // ボタン状態の復元
+                                submitQuestionBtn.disabled = false;
+                                submitQuestionBtn.innerText = originalText;
+                            })
+                            .catch(error => {
+                                console.error('フェッチエラー:', error);
+                                alert('エラーが発生しました。もう一度お試しください。');
+                                
+                                // ボタン状態の復元
+                                submitQuestionBtn.disabled = false;
+                                submitQuestionBtn.innerText = originalText;
+                            });
+                        } catch (error) {
+                            console.error('質問送信処理中にエラーが発生しました:', error);
+                            alert('質問の処理中にエラーが発生しました。もう一度お試しください。');
+                            
+                            // エラー時にボタンを元に戻す
+                            if (submitQuestionBtn) {
+                                submitQuestionBtn.disabled = false;
+                                submitQuestionBtn.innerText = '質問を送信';
+                            }
+                        }
+                    });
+                } else {
+                    console.error('submitQuestionBtn 要素が見つかりません');
+                }
+                
+                // 詳細説明ボタン
+                if (detailExplanationBtn) {
+                    detailExplanationBtn.addEventListener('click', function(e) {
+                        try {
+                            console.log('詳細説明ボタンがクリックされました');
+                            e.preventDefault();
+                            
+                            const rawContent = `{{ raw_content|replace('\n', '\\n')|replace('\"', '\\\"')|safe }}`;
+                            const concept = prompt('詳細な説明が欲しい概念や用語を入力してください:');
+                            
+                            if (concept) {
+                                console.log('詳細説明を要求された概念:', concept);
+                                window.location.href = `/ask_question?subject={{ subject_key }}&topic={{ topic }}&question=${encodeURIComponent(concept)}`;
+                            }
+                        } catch (error) {
+                            console.error('詳細説明処理中にエラーが発生しました:', error);
+                        }
+                    });
+                } else {
+                    console.error('detailExplanationBtn 要素が見つかりません');
+                }
+            } catch (error) {
+                console.error('初期化中にエラーが発生しました:', error);
+            }
         });
     </script>
 </body>
