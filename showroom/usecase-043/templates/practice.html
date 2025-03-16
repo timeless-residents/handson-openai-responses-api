@@ -112,7 +112,8 @@
             
             // 問題再生成ボタン
             document.getElementById('regenerateBtn').addEventListener('click', function() {
-                window.location.reload();
+                // パラメータを追加して新しい問題を生成
+                window.location.href = window.location.pathname + '?regenerate=true';
             });
         });
         

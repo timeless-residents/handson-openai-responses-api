@@ -367,13 +367,25 @@ def practice(subject, topic):
 
     user_session = get_or_create_user_session(session["user_id"])
 
-    # 練習問題の生成
-    problems = generate_practice_problems(
-        subject,
-        topic,
-        user_session["profile"]["level"],
-        user_session["understanding_level"],
-    )
+    # 新しい問題を生成するかどうかをクエリパラメータから取得（デフォルトはFalse）
+    regenerate = request.args.get('regenerate', 'false').lower() == 'true'
+    
+    # キャッシュキー - 同じ問題を再表示するために使用
+    cache_key = f"practice_{subject}_{topic}_{user_session['user_id']}"
+    
+    # 練習問題の生成 (regenerateがtrueの場合または初めての場合)
+    if regenerate or cache_key not in user_session:
+        problems = generate_practice_problems(
+            subject,
+            topic,
+            user_session["profile"]["level"],
+            user_session["understanding_level"],
+        )
+        # セッションにキャッシュ
+        user_session[cache_key] = problems
+    else:
+        # キャッシュから問題を取得
+        problems = user_session[cache_key]
 
     # マークダウンをHTMLに変換
     problems_html = markdown.markdown(problems)
