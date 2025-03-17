@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ friendly_name }} - 公共データの可視化と説明</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-2.29.1.min.js"></script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .visualization-card {
+            margin-bottom: 2rem;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .stats-card {
+            border-radius: 10px;
+            overflow: hidden;
+            height: 100%;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .ai-analysis {
+            background-color: #f1f8ff;
+            border-left: 4px solid #2575fc;
+            padding: 1.5rem;
+            border-radius: 0 10px 10px 0;
+            margin-bottom: 2rem;
+        }
+
+        .footer {
+            margin-top: 3rem;
+            padding: 1.5rem 0;
+            background-color: #343a40;
+            color: white;
+        }
+
+        .dataset-nav {
+            background-color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .dataset-nav a {
+            margin: 0 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            color: #2575fc;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+
+        .dataset-nav a:hover,
+        .dataset-nav a.active {
+            background-color: #e6f0ff;
+            color: #0d47a1;
+        }
+
+        .query-form {
+            margin-bottom: 2rem;
+        }
+
+        .query-form textarea {
+            border-radius: 10px;
+            resize: vertical;
+        }
+
+        .plot-container {
+            height: 450px;
+            width: 100%;
+            min-height: 300px;
+            border: 1px solid #eee;
+            background-color: #fdfdfd;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2575fc;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <div class="container">
+            <h1>{{ friendly_name }}</h1>
+            <p class="lead">データ可視化と AI 分析</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="dataset-nav d-flex justify-content-center">
+            <a href="/" class="d-flex align-items-center">
+                <i class="fas fa-home me-1"></i> ホーム
+            </a>
+            <a href="/dataset/population" class="{{ 'active' if dataset_name == 'population' else '' }}">
+                <i class="fas fa-users me-1"></i> 人口統計
+            </a>
+            <a href="/dataset/weather" class="{{ 'active' if dataset_name == 'weather' else '' }}">
+                <i class="fas fa-cloud-sun-rain me-1"></i> 気象
+            </a>
+            <a href="/dataset/energy" class="{{ 'active' if dataset_name == 'energy' else '' }}">
+                <i class="fas fa-bolt me-1"></i> エネルギー
+            </a>
+            <a href="/dataset/transport" class="{{ 'active' if dataset_name == 'transport' else '' }}">
+                <i class="fas fa-train me-1"></i> 交通
+            </a>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <div class="query-form">
+                    <form method="POST" action="/dataset/{{ dataset_name }}">
+                        <div class="mb-3">
+                            <label for="query" class="form-label">特定の視点からデータを分析</label>
+                            <textarea class="form-control" id="query" name="query" rows="3"
+                                placeholder="例: 「この10年間の傾向は？」「地域別の特徴は？」などの質問を入力してください。">{{ query if query else '' }}</textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">分析する</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card stats-card h-100">
+                    <div class="card-header bg-transparent">
+                        <h5 class="mb-0">データ概要</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if dataset_name == 'population' %}
+                        <div class="mb-3">
+                            <div class="stat-label">最新年</div>
+                            <div class="stat-value">{{ stats.latest_year }}年</div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="stat-label">総人口</div>
+                            <div class="stat-value">{{ "{:,}".format(stats.total_population) }}</div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="stat-label">65歳以上割合</div>
+                            <div class="stat-value">{{ stats.age_ratio['65歳以上'] }}</div>
+                        </div>
+                        <div>
+                            <div class="stat-label">人口変化率（期間全体）</div>
+                            <div class="stat-value">{{ stats.population_change_rate }}</div>
+                        </div>
+                        {% elif dataset_name == 'weather' %}
+                        <div class="mb-3">
+                            <div class="stat-label">最新年</div>
+                            <div class="stat-value">{{ stats.latest_year }}年</div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="stat-label">最も暑い都市</div>
+                            <div class="stat-value">{{ stats.hottest_city }} ({{ stats.hottest_city_temp }})</div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="stat-label">最も寒い都市</div>
+                            <div class="stat-value">{{ stats.coldest_city }} ({{ stats.coldest_city_temp }})</div>
+                        </div>
+                        <div>
+                            <div class="stat-label">期間中の平均気温変化</div>
+                            <div class="stat-value">{{ stats.temp_change }}</div>
+                        </div>
+                        {% elif dataset_name == 'energy' %}
+                        <div class="mb-3">
+                            <div class="stat-label">最新年</div>
+                            <div class="stat-value">{{ stats.latest_year }}年</div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="stat-label">総発電量</div>
+                            <div class="stat-value">{{ stats.total_energy }}</div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="stat-label">再生可能エネルギー割合</div>
+                            <div class="stat-value">{{ stats.renewable_share }}</div>
+                        </div>
+                        <div>
+                            <div class="stat-label">再生可能エネルギー10年間成長率</div>
+                            <div class="stat-value">{{ stats.renewable_growth_10yr }}</div>
+                        </div>
+                        {% elif dataset_name == 'transport' %}
+                        <div class="mb-3">
+                            <div class="stat-label">最新年</div>
+                            <div class="stat-value">{{ stats.latest_year }}年</div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="stat-label">総輸送人員</div>
+                            <div class="stat-value">{{ stats.total_transport }}</div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="stat-label">首都圏公共交通利用率</div>
+                            <div class="stat-value">{{ stats.public_transport_by_region['首都圏'] }}</div>
+                        </div>
+                        <div>
+                            <div class="stat-label">鉄道利用者変化率（10年間）</div>
+                            <div class="stat-value">{{ stats.transport_change_10yr['鉄道'] }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="ai-analysis">
+            <h3><i class="fas fa-robot me-2"></i>AIによる分析</h3>
+            <div class="markdown-content">{{ explanations|safe }}</div>
+        </div>
+        
+        <style>
+            .markdown-content {
+                line-height: 1.6;
+                font-size: 1.05rem;
+            }
+            .markdown-content h1, .markdown-content h2 {
+                margin-top: 1.8rem;
+                margin-bottom: 1rem;
+                color: #1a472a;
+                font-weight: 600;
+                border-bottom: 1px solid #eaecef;
+                padding-bottom: 0.3rem;
+            }
+            .markdown-content h3, .markdown-content h4 {
+                margin-top: 1.5rem;
+                margin-bottom: 0.8rem;
+                color: #2e7d32;
+                font-weight: 600;
+            }
+            .markdown-content ul, .markdown-content ol {
+                margin-bottom: 1.2rem;
+                padding-left: 2rem;
+            }
+            .markdown-content li {
+                margin-bottom: 0.6rem;
+            }
+            .markdown-content li:last-child {
+                margin-bottom: 0;
+            }
+            .markdown-content strong {
+                color: #0d47a1;
+                font-weight: 600;
+            }
+            .markdown-content blockquote {
+                border-left: 4px solid #2e7d32;
+                padding: 0.5rem 1rem;
+                margin: 1rem 0;
+                background-color: #f8f9fa;
+                color: #555;
+            }
+            .markdown-content code {
+                background-color: #f5f5f5;
+                padding: 0.2rem 0.4rem;
+                border-radius: 3px;
+                font-family: SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace;
+                font-size: 0.9em;
+            }
+            .markdown-content pre {
+                background-color: #f6f8fa;
+                border-radius: 6px;
+                padding: 1rem;
+                overflow: auto;
+            }
+            .markdown-content pre code {
+                background-color: transparent;
+                padding: 0;
+                border-radius: 0;
+                display: block;
+                overflow-x: auto;
+            }
+            .markdown-content p {
+                margin-bottom: 1.2rem;
+            }
+            .markdown-content table {
+                border-collapse: collapse;
+                width: 100%;
+                margin-bottom: 1.2rem;
+            }
+            .markdown-content table th, .markdown-content table td {
+                border: 1px solid #ddd;
+                padding: 8px 12px;
+                text-align: left;
+            }
+            .markdown-content table th {
+                background-color: #f2f2f2;
+                font-weight: 600;
+            }
+            .markdown-content table tr:nth-child(even) {
+                background-color: #f9f9f9;
+            }
+        </style>
+
+        <h3 class="mb-4">データ可視化</h3>
+        <div class="row">
+            {% if dataset_name == 'population' %}
+            <div class="col-md-12 mb-4">
+                <div class="visualization-card card">
+                    <div class="card-body">
+                        <div id="total_population_trend" class="plot-container"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="visualization-card card">
+                    <div class="card-body">
+                        <div id="age_group_trend" class="plot-container"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="visualization-card card">
+                    <div class="card-body">
+                        <div id="prefecture_population" class="plot-container"></div>
+                    </div>
+                </div>
+            </div>
+            {% elif dataset_name == 'weather' %}
+            <div class="col-md-12 mb-4">
+                <div class="visualization-card card">
+                    <div class="card-body">
+                        <div id="city_temperature_trend" class="plot-container"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="visualization-card card">
+                    <div class="card-body">
+                        <div id="monthly_temperature" class="plot-container"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="visualization-card card">
+                    <div class="card-body">
+                        <div id="city_precipitation" class="plot-container"></div>
+                    </div>
+                </div>
+            </div>
+            {% elif dataset_name == 'energy' %}
+            <div class="col-md-12 mb-4">
+                <div class="visualization-card card">
+                    <div class="card-body">
+                        <div id="energy_source_trend" class="plot-container"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="visualization-card card">
+                    <div class="card-body">
+                        <div id="energy_composition" class="plot-container"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="visualization-card card">
+                    <div class="card-body">
+                        <div id="renewable_energy_growth" class="plot-container"></div>
+                    </div>
+                </div>
+            </div>
+            {% elif dataset_name == 'transport' %}
+            <div class="col-md-12 mb-4">
+                <div class="visualization-card card">
+                    <div class="card-body">
+                        <div id="transport_mode_trend" class="plot-container"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="visualization-card card">
+                    <div class="card-body">
+                        <div id="regional_transport_composition" class="plot-container"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="visualization-card card">
+                    <div class="card-body">
+                        <div id="regional_public_transport" class="plot-container"></div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container text-center">
+            <p>© 2025 公共データ可視化プラットフォーム | Powered by OpenAI</p>
+        </div>
+    </footer>
+
+    <script>
+        // 可視化データの読み込みと表示
+        function plotChart(divId, chartData) {
+            try {
+                if (!chartData || !chartData.data) {
+                    console.error('グラフデータが無効です: ' + divId);
+                    displayPlotError(divId);
+                    return;
+                }
+                
+                // 再帰的に数値の0/1をJavaScriptのtrue/falseに変換する関数
+                function convertBoolValues(obj) {
+                    if (!obj || typeof obj !== 'object') return;
+                    
+                    Object.keys(obj).forEach(key => {
+                        // Boolean値に変換すべきPlotlyプロパティのリスト
+                        const booleanProps = ['showlegend', 'showarrow', 'visible', 'autorange', 'uirevision'];
+                        
+                        if (booleanProps.includes(key)) {
+                            // Handle various representations of boolean values
+                            if (obj[key] === 1 || obj[key] === '1' || obj[key] === 'True' || obj[key] === 'true' || obj[key] === true) {
+                                obj[key] = true;
+                            }
+                            if (obj[key] === 0 || obj[key] === '0' || obj[key] === 'False' || obj[key] === 'false' || obj[key] === false) {
+                                obj[key] = false;
+                            }
+                        } else if (typeof obj[key] === 'object' && obj[key] !== null) {
+                            convertBoolValues(obj[key]);
+                        }
+                    });
+                    
+                    // 配列の場合は各要素を処理
+                    if (Array.isArray(obj)) {
+                        obj.forEach(item => {
+                            if (item && typeof item === 'object') {
+                                convertBoolValues(item);
+                            }
+                        });
+                    }
+                }
+                
+                // レイアウトとデータの両方を処理
+                const layout = chartData.layout || {};
+                convertBoolValues(layout);
+                
+                // データオブジェクトも処理
+                const data = chartData.data || [];
+                convertBoolValues(data);
+                
+                // Python/JavaScript間のブール値変換のための事前処理
+                const booleanProps = ['showlegend', 'showarrow', 'visible', 'autorange', 'uirevision'];
+                
+                // 文字列のブール値をJavaScriptのブール値に変換
+                function convertStringBooleans(obj) {
+                    if (!obj || typeof obj !== 'object') return obj;
+                    
+                    if (Array.isArray(obj)) {
+                        return obj.map(item => convertStringBooleans(item));
+                    }
+                    
+                    const result = {};
+                    for (const [key, value] of Object.entries(obj)) {
+                        if (booleanProps.includes(key)) {
+                            // 文字列の "true" と "false" を実際のブール値に変換
+                            if (value === "true") {
+                                result[key] = true;
+                            } else if (value === "false") {
+                                result[key] = false;
+                            } else {
+                                result[key] = value;
+                            }
+                        } else if (typeof value === 'object' && value !== null) {
+                            result[key] = convertStringBooleans(value);
+                        } else {
+                            result[key] = value;
+                        }
+                    }
+                    
+                    return result;
+                }
+                
+                // データを処理
+                const processedData = convertStringBooleans(data);
+                const processedLayout = convertStringBooleans(layout);
+                
+                // 変換後のデータを使用
+                Plotly.newPlot(divId, processedData, processedLayout);
+                console.log('グラフを描画しました: ' + divId);
+            } catch (error) {
+                console.error('グラフ描画エラー: ' + divId, error);
+                displayPlotError(divId);
+            }
+        }
+        
+        function displayPlotError(divId) {
+            document.getElementById(divId).innerHTML = '<div style="height:100%;display:flex;align-items:center;justify-content:center;color:red;"><p>グラフ表示エラー</p></div>';
+        }
+
+        // 人口統計データの可視化
+        {% if dataset_name == 'population' %}
+        plotChart('total_population_trend', {{ visualizations.total_population_trend | safe }});
+        plotChart('age_group_trend', {{ visualizations.age_group_trend | safe }});
+        plotChart('prefecture_population', {{ visualizations.prefecture_population | safe }});
+        
+        // 気象データの可視化
+        {% elif dataset_name == 'weather' %}
+        plotChart('city_temperature_trend', {{ visualizations.city_temperature_trend | safe }});
+        plotChart('monthly_temperature', {{ visualizations.monthly_temperature | safe }});
+        plotChart('city_precipitation', {{ visualizations.city_precipitation | safe }});
+        
+        // エネルギーデータの可視化
+        {% elif dataset_name == 'energy' %}
+        plotChart('energy_source_trend', {{ visualizations.energy_source_trend | safe }});
+        plotChart('energy_composition', {{ visualizations.energy_composition | safe }});
+        plotChart('renewable_energy_growth', {{ visualizations.renewable_energy_growth | safe }});
+        
+        // 交通データの可視化
+        {% elif dataset_name == 'transport' %}
+        plotChart('transport_mode_trend', {{ visualizations.transport_mode_trend | safe }});
+        plotChart('regional_transport_composition', {{ visualizations.regional_transport_composition | safe }});
+        plotChart('regional_public_transport', {{ visualizations.regional_public_transport | safe }});
+        {% endif %}
+
+        // レスポンシブ対応
+        window.onresize = function () {
+            {% if dataset_name == 'population' %}
+            Plotly.relayout('total_population_trend', {
+                'xaxis.autorange': true,
+                'yaxis.autorange': true
+            });
+            Plotly.relayout('age_group_trend', {
+                'xaxis.autorange': true,
+                'yaxis.autorange': true
+            });
+            Plotly.relayout('prefecture_population', {
+                'xaxis.autorange': true,
+                'yaxis.autorange': true
+            });
+            {% elif dataset_name == 'weather' %}
+            Plotly.relayout('city_temperature_trend', {
+                'xaxis.autorange': true,
+                'yaxis.autorange': true
+            });
+            Plotly.relayout('monthly_temperature', {
+                'xaxis.autorange': true,
+                'yaxis.autorange': true
+            });
+            Plotly.relayout('city_precipitation', {
+                'xaxis.autorange': true,
+                'yaxis.autorange': true
+            });
+            {% elif dataset_name == 'energy' %}
+            Plotly.relayout('energy_source_trend', {
+                'xaxis.autorange': true,
+                'yaxis.autorange': true
+            });
+            Plotly.relayout('energy_composition', {});
+            Plotly.relayout('renewable_energy_growth', {
+                'xaxis.autorange': true,
+                'yaxis.autorange': true
+            });
+            {% elif dataset_name == 'transport' %}
+            Plotly.relayout('transport_mode_trend', {
+                'xaxis.autorange': true,
+                'yaxis.autorange': true
+            });
+            Plotly.relayout('regional_transport_composition', {
+                'xaxis.autorange': true,
+                'yaxis.autorange': true
+            });
+            Plotly.relayout('regional_public_transport', {
+                'xaxis.autorange': true,
+                'yaxis.autorange': true
+            });
+            {% endif %}
+        };
+    </script>
+</body>
+
+</html>
