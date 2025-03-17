@@ -1,0 +1,137 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>生成されたメッセージ</h1>
+            <div>
+                <a href="{{ url_for('generate_message', disaster_id=disaster.id) }}" class="btn btn-primary">
+                    <i class="fas fa-sync"></i> 別のメッセージを生成
+                </a>
+                <a href="{{ url_for('view_disaster', disaster_id=disaster.id) }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> 災害情報に戻る
+                </a>
+            </div>
+        </div>
+        
+        <div class="alert alert-{{ disaster.alert_level }} mt-3">
+            <h4>{{ disaster.title }}</h4>
+            <p>{{ disaster.description }}</p>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fas fa-bullhorn"></i> 生成されたメッセージ
+                            </div>
+                            <div>
+                                <span class="badge bg-light text-dark me-2">対象: {{ target_group }}</span>
+                                <span class="badge bg-light text-dark">言語: {{ language }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="message-box">
+                            {{ message|replace('\n', '<br>')|safe }}
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mt-3">
+                            <button class="btn btn-outline-secondary" onclick="copyToClipboard()">
+                                <i class="fas fa-copy"></i> クリップボードにコピー
+                            </button>
+                            <div>
+                                <button class="btn btn-outline-success" onclick="downloadAsText()">
+                                    <i class="fas fa-download"></i> テキストとしてダウンロード
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <i class="fas fa-info-circle"></i> 配信ヒント
+                    </div>
+                    <div class="card-body">
+                        <h5>{{ target_group }}向けの配信について</h5>
+                        <ul>
+                            {% if target_group == '一般市民' %}
+                                <li>防災無線、地域のSNS、自治体のWebサイトで配信することを検討してください</li>
+                                <li>地域コミュニティのリーダーを通じて情報を伝達する方法も効果的です</li>
+                            {% elif target_group == '高齢者' %}
+                                <li>大きなフォントで印刷し、自治会や民生委員を通じて配布することを検討してください</li>
+                                <li>防災無線と併用して、戸別訪問での声掛けも効果的です</li>
+                            {% elif target_group == '子ども・保護者' %}
+                                <li>学校や保育施設を通じた連絡網で配信することを検討してください</li>
+                                <li>保護者向けのメッセージングアプリを活用することも効果的です</li>
+                            {% elif target_group == '障がい者' %}
+                                <li>障がい者支援団体や福祉施設を通じた配信を検討してください</li>
+                                <li>視覚障がい者向けには音声配信、聴覚障がい者向けには文字情報の配信が重要です</li>
+                            {% elif target_group == '外国人' %}
+                                <li>多言語支援センターや国際交流協会を通じた配信を検討してください</li>
+                                <li>外国人コミュニティのリーダーや大使館との連携も効果的です</li>
+                            {% elif target_group == '観光客' %}
+                                <li>観光案内所、ホテル、主要な観光スポットでの掲示を検討してください</li>
+                                <li>旅行会社や観光アプリを通じた情報配信も効果的です</li>
+                            {% endif %}
+                            <li>複数のチャネルを使って情報を配信し、確実に届くようにしてください</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-warning text-dark">
+                        <i class="fas fa-exclamation-triangle"></i> 注意事項
+                    </div>
+                    <div class="card-body">
+                        <p>このメッセージを配信する際は、以下の点に注意してください：</p>
+                        <ul>
+                            <li>情報が最新であることを確認してから配信してください</li>
+                            <li>必要に応じて、地域の実情に合わせて内容を調整してください</li>
+                            <li>複数の媒体を使って繰り返し情報を配信することが重要です</li>
+                            <li>避難所の収容状況など、変化する情報は随時更新してください</li>
+                            <li>混乱を招かないよう、正確な情報のみを配信してください</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function copyToClipboard() {
+        const messageText = `{{ message|replace('\n', '\\n')|replace('"', '\\"')|safe }}`;
+        navigator.clipboard.writeText(messageText).then(function() {
+            alert('メッセージをクリップボードにコピーしました');
+        }, function() {
+            alert('コピーに失敗しました');
+        });
+    }
+    
+    function downloadAsText() {
+        const messageText = `{{ message|replace('"', '\\"')|safe }}`;
+        const blob = new Blob([messageText], {type: 'text/plain'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = '{{ disaster.title }}_{{ target_group }}_{{ language }}.txt';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+</script>
+{% endblock %}

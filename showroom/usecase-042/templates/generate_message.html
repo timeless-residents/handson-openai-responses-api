@@ -1,0 +1,88 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>災害メッセージ生成</h1>
+            <a href="{{ url_for('view_disaster', disaster_id=disaster.id) }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> 災害情報に戻る
+            </a>
+        </div>
+        
+        <div class="alert alert-{{ disaster.alert_level }} mt-3">
+            <h4>{{ disaster.title }}</h4>
+            <p>{{ disaster.description }}</p>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <i class="fas fa-bullhorn"></i> メッセージ生成設定
+                    </div>
+                    <div class="card-body">
+                        <form method="POST">
+                            <div class="mb-3">
+                                <label for="target_group" class="form-label">対象グループ</label>
+                                <select name="target_group" id="target_group" class="form-select">
+                                    {% for key, value in target_groups.items() %}
+                                        <option value="{{ key }}">{{ value }}</option>
+                                    {% endfor %}
+                                </select>
+                                <small class="form-text text-muted">メッセージを配信する対象グループを選択してください。</small>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="language" class="form-label">言語</label>
+                                <select name="language" id="language" class="form-select">
+                                    {% for key, value in languages.items() %}
+                                        <option value="{{ key }}">{{ value }}</option>
+                                    {% endfor %}
+                                </select>
+                                <small class="form-text text-muted">メッセージの言語を選択してください。</small>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="custom_instructions" class="form-label">追加指示（オプション）</label>
+                                <textarea name="custom_instructions" id="custom_instructions" class="form-control" rows="3" placeholder="追加の指示があれば入力してください。例：「簡潔に伝える」「具体的な避難方法を詳しく」など"></textarea>
+                                <small class="form-text text-muted">特別な要件があれば入力してください。</small>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary w-100">メッセージ生成</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <i class="fas fa-info-circle"></i> ヘルプ
+                    </div>
+                    <div class="card-body">
+                        <h5>対象グループについて</h5>
+                        <p>それぞれの対象グループに最適化されたメッセージを生成します：</p>
+                        <ul>
+                            <li><strong>一般市民</strong> - 一般的な情報を含むメッセージ</li>
+                            <li><strong>高齢者</strong> - よりシンプルで大きなフォントで読みやすいメッセージ</li>
+                            <li><strong>子ども・保護者</strong> - 子どもにも理解しやすく、保護者向けの指示を含むメッセージ</li>
+                            <li><strong>障がい者</strong> - アクセシビリティに配慮したメッセージ</li>
+                            <li><strong>外国人</strong> - 文化的背景を考慮したメッセージ</li>
+                            <li><strong>観光客</strong> - 地理に不案内な人向けの情報を含むメッセージ</li>
+                        </ul>
+                        
+                        <h5>言語について</h5>
+                        <p>選択可能な言語：</p>
+                        <ul>
+                            <li><strong>日本語</strong> - 標準的な日本語</li>
+                            <li><strong>英語</strong> - 国際的な対応のための英語</li>
+                            <li><strong>やさしい日本語</strong> - 簡潔で理解しやすい日本語（外国人や子どもなどにも理解しやすい）</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

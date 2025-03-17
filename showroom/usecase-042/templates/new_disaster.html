@@ -1,0 +1,102 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h1>新規災害情報の登録</h1>
+        <p class="lead">災害情報を入力してください。各項目は正確に記入してください。</p>
+        
+        <form method="POST" class="mt-4">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="disaster_type" class="form-label">災害種別</label>
+                        <select name="disaster_type" id="disaster_type" class="form-select">
+                            {% for key, value in disaster_types.items() %}
+                                <option value="{{ key }}">{{ value }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="alert_level" class="form-label">警戒レベル</label>
+                        <select name="alert_level" id="alert_level" class="form-select">
+                            {% for key, value in alert_levels.items() %}
+                                <option value="{{ key }}">{{ value }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="title" class="form-label">タイトル</label>
+                        <input type="text" name="title" id="title" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">詳細説明</label>
+                        <textarea name="description" id="description" class="form-control" rows="4" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="affected_areas" class="form-label">影響地域（改行区切り）</label>
+                        <textarea name="affected_areas" id="affected_areas" class="form-control" rows="4" required></textarea>
+                        <small class="form-text text-muted">複数の地域は改行して入力してください。</small>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="evacuation_centers" class="form-label">避難所（任意、改行区切り）</label>
+                        <textarea name="evacuation_centers" id="evacuation_centers" class="form-control" rows="4" placeholder="避難所名:住所"></textarea>
+                        <small class="form-text text-muted">「避難所名:住所」の形式で、改行して複数入力できます。</small>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="start_time" class="form-label">発生/開始時刻</label>
+                                <input type="datetime-local" name="start_time" id="start_time" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="estimated_end_time" class="form-label">推定終了時刻（任意）</label>
+                                <input type="datetime-local" name="estimated_end_time" id="estimated_end_time" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="instructions" class="form-label">指示事項</label>
+                        <textarea name="instructions" id="instructions" class="form-control" rows="4" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="emergency_contacts" class="form-label">緊急連絡先（改行区切り）</label>
+                        <textarea name="emergency_contacts" id="emergency_contacts" class="form-control" rows="4" placeholder="名称:連絡先" required></textarea>
+                        <small class="form-text text-muted">「名称:連絡先」の形式で、改行して複数入力できます。</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <a href="{{ url_for('index') }}" class="btn btn-secondary">キャンセル</a>
+                <button type="submit" class="btn btn-primary">登録</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // 日付フィールドの初期値を現在の日時に設定
+    document.addEventListener('DOMContentLoaded', function() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        
+        const formattedDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
+        
+        const startTimeInput = document.querySelector('input[name="start_time"]');
+        if (startTimeInput && !startTimeInput.value) {
+            startTimeInput.value = formattedDateTime;
+        }
+    });
+</script>
+{% endblock %}

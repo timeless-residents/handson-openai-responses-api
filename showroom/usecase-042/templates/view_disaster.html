@@ -1,0 +1,138 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>災害情報詳細</h1>
+            <div>
+                <a href="{{ url_for('generate_message', disaster_id=disaster.id) }}" class="btn btn-primary">
+                    <i class="fas fa-bullhorn"></i> メッセージ生成
+                </a>
+                <a href="{{ url_for('social_media', disaster_id=disaster.id) }}" class="btn btn-info">
+                    <i class="fas fa-share-alt"></i> SNS投稿作成
+                </a>
+                <a href="{{ url_for('index') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> 戻る
+                </a>
+            </div>
+        </div>
+        
+        <div class="alert alert-{{ disaster.alert_level }} mt-3">
+            <div class="d-flex justify-content-between">
+                <h2>{{ disaster.title }}</h2>
+                <span>
+                    {% if disaster.alert_level == 'info' %}
+                        <span class="badge bg-info fs-5">情報</span>
+                    {% elif disaster.alert_level == 'advisory' %}
+                        <span class="badge bg-warning fs-5">注意報</span>
+                    {% elif disaster.alert_level == 'warning' %}
+                        <span class="badge bg-danger fs-5">警報</span>
+                    {% elif disaster.alert_level == 'emergency' %}
+                        <span class="badge bg-dark fs-5">緊急警報</span>
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-md-8">
+                <div class="card mb-3">
+                    <div class="card-header bg-primary text-white">
+                        <i class="fas fa-info-circle"></i> 基本情報
+                    </div>
+                    <div class="card-body">
+                        <table class="table">
+                            <tr>
+                                <th style="width: 25%">災害種別</th>
+                                <td>{{ disaster.disaster_type }}</td>
+                            </tr>
+                            <tr>
+                                <th>発生日時</th>
+                                <td>{{ disaster.start_time|format_datetime }}</td>
+                            </tr>
+                            {% if disaster.estimated_end_time %}
+                            <tr>
+                                <th>推定終了時刻</th>
+                                <td>{{ disaster.estimated_end_time|format_datetime }}</td>
+                            </tr>
+                            {% endif %}
+                            <tr>
+                                <th>詳細説明</th>
+                                <td>{{ disaster.description|replace('\n', '<br>')|safe }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="card mb-3">
+                    <div class="card-header bg-danger text-white">
+                        <i class="fas fa-exclamation-triangle"></i> 影響範囲
+                    </div>
+                    <div class="card-body">
+                        <h5>影響地域</h5>
+                        <ul class="list-group mb-3">
+                            {% for area in disaster.affected_areas %}
+                            <li class="list-group-item">{{ area }}</li>
+                            {% endfor %}
+                        </ul>
+                        
+                        <h5>指示事項</h5>
+                        <div class="alert alert-warning">
+                            {{ disaster.instructions|replace('\n', '<br>')|safe }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card mb-3">
+                    <div class="card-header bg-success text-white">
+                        <i class="fas fa-house-user"></i> 避難所情報
+                    </div>
+                    <div class="card-body">
+                        {% if disaster.evacuation_centers %}
+                            <ul class="list-group">
+                                {% for center in disaster.evacuation_centers %}
+                                <li class="list-group-item">
+                                    <strong>{{ center.name }}</strong><br>
+                                    <small class="text-muted">{{ center.address }}</small>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p class="text-muted">避難所情報はありません</p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="card mb-3">
+                    <div class="card-header bg-info text-white">
+                        <i class="fas fa-phone-alt"></i> 緊急連絡先
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group">
+                            {% for name, contact in disaster.emergency_contacts.items() %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                {{ name }}
+                                <span class="badge bg-primary rounded-pill">{{ contact }}</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header bg-secondary text-white">
+                        <i class="fas fa-clock"></i> 更新情報
+                    </div>
+                    <div class="card-body">
+                        <p>最終更新: {{ disaster.update_time|format_datetime }}</p>
+                        <p class="small text-muted">ID: {{ disaster.id }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

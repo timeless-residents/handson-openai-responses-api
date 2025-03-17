@@ -1,0 +1,94 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>災害情報一覧</h1>
+            <a href="{{ url_for('new_disaster') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> 新規災害情報
+            </a>
+        </div>
+        
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> 
+            このシステムでは、災害情報の整理と効果的な配信を支援します。災害情報を追加し、対象者別にメッセージを生成したり、情報を分析したりすることができます。
+        </div>
+        
+        {% if disasters %}
+            <div class="row">
+                {% for disaster in disasters %}
+                <div class="col-md-6">
+                    <div class="card mb-3 alert-{{ disaster.alert_level }}">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ disaster.title }}</h5>
+                            <h6 class="card-subtitle mb-2 text-muted">
+                                <span class="badge bg-secondary">{{ disaster.disaster_type }}</span>
+                                {% if disaster.alert_level == 'info' %}
+                                    <span class="badge bg-info">情報</span>
+                                {% elif disaster.alert_level == 'advisory' %}
+                                    <span class="badge bg-warning">注意報</span>
+                                {% elif disaster.alert_level == 'warning' %}
+                                    <span class="badge bg-danger">警報</span>
+                                {% elif disaster.alert_level == 'emergency' %}
+                                    <span class="badge bg-dark">緊急警報</span>
+                                {% endif %}
+                            </h6>
+                            <p class="card-text">{{ disaster.description|truncate(100) }}</p>
+                            <p class="card-text"><small class="text-muted">
+                                発生日時: {{ disaster.start_time|format_datetime }}
+                            </small></p>
+                            <div class="btn-group">
+                                <a href="{{ url_for('view_disaster', disaster_id=disaster.id) }}" class="btn btn-sm btn-outline-secondary">詳細</a>
+                                <a href="{{ url_for('generate_message', disaster_id=disaster.id) }}" class="btn btn-sm btn-outline-primary">メッセージ生成</a>
+                                <a href="{{ url_for('social_media', disaster_id=disaster.id) }}" class="btn btn-sm btn-outline-info">SNS投稿</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle"></i> 災害情報が登録されていません。「新規災害情報」ボタンから登録してください。
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <i class="fas fa-pencil-alt"></i> 災害情報の登録
+            </div>
+            <div class="card-body">
+                <p>新しい災害情報を登録し、データベースに追加します。</p>
+                <a href="{{ url_for('new_disaster') }}" class="btn btn-outline-primary">登録する</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <i class="fas fa-bullhorn"></i> メッセージ生成
+            </div>
+            <div class="card-body">
+                <p>災害情報を基に、対象者別・言語別のメッセージを生成します。</p>
+                <p class="small text-muted">※災害情報を選択してから利用できます</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <i class="fas fa-search"></i> 情報分析
+            </div>
+            <div class="card-body">
+                <p>複数の情報源から得られた災害情報を分析し、整理します。</p>
+                <a href="{{ url_for('analyze_sources') }}" class="btn btn-outline-info">分析する</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

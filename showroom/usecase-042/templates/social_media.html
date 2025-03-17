@@ -1,0 +1,76 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>ソーシャルメディア投稿作成</h1>
+            <a href="{{ url_for('view_disaster', disaster_id=disaster.id) }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> 災害情報に戻る
+            </a>
+        </div>
+        
+        <div class="alert alert-{{ disaster.alert_level }} mt-3">
+            <h4>{{ disaster.title }}</h4>
+            <p>{{ disaster.description }}</p>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <i class="fas fa-share-alt"></i> SNS投稿設定
+                    </div>
+                    <div class="card-body">
+                        <form method="POST">
+                            <div class="mb-3">
+                                <label for="platform" class="form-label">プラットフォーム</label>
+                                <select name="platform" id="platform" class="form-select">
+                                    {% for platform in platforms %}
+                                        <option value="{{ platform }}">{{ platform }}</option>
+                                    {% endfor %}
+                                </select>
+                                <small class="form-text text-muted">投稿するプラットフォームを選択してください。</small>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="character_limit" class="form-label">文字数制限</label>
+                                <input type="number" name="character_limit" id="character_limit" class="form-control" value="280">
+                                <small class="form-text text-muted">プラットフォームの文字数制限を入力してください。</small>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary w-100">投稿作成</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <i class="fas fa-info-circle"></i> SNS投稿のヒント
+                    </div>
+                    <div class="card-body">
+                        <h5>効果的なSNS投稿のポイント</h5>
+                        <ul>
+                            <li><strong>簡潔に重要な情報を伝える</strong> - 最初の文で最も重要な情報を伝えましょう</li>
+                            <li><strong>適切なハッシュタグを使用する</strong> - 検索しやすくするために関連ハッシュタグを含めましょう</li>
+                            <li><strong>正確な情報のみを共有する</strong> - 確認された情報のみを発信しましょう</li>
+                            <li><strong>定期的に更新する</strong> - 状況の変化に応じて新しい投稿を行いましょう</li>
+                            <li><strong>公式情報源へのリンクを含める</strong> - 詳細情報の確認先を提供しましょう</li>
+                        </ul>
+                        
+                        <h5>プラットフォーム別の特徴</h5>
+                        <ul>
+                            <li><strong>Twitter/X</strong> - 短く簡潔に、ハッシュタグを効果的に使用</li>
+                            <li><strong>Facebook</strong> - より詳細な情報、画像や地図の添付が可能</li>
+                            <li><strong>Instagram</strong> - ビジュアル重視、ストーリーズでの緊急情報発信も効果的</li>
+                            <li><strong>LINE</strong> - 直接的なメッセージ、公式アカウントでの通知機能の活用</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>災害情報分析</h1>
+            <a href="{{ url_for('index') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> ホームに戻る
+            </a>
+        </div>
+        
+        <div class="alert alert-info mt-3">
+            <i class="fas fa-info-circle"></i> 
+            複数の情報源から得られた災害情報を分析し、整理します。各情報源の情報を入力してください。
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header bg-primary text-white">
+                <i class="fas fa-search"></i> 情報分析
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="source1" class="form-label">情報源1 <span class="text-danger">*</span></label>
+                        <textarea name="source1" id="source1" class="form-control" rows="5" placeholder="例：気象庁の発表やニュース記事など、情報源の内容を貼り付けてください" required></textarea>
+                        <small class="form-text text-muted">気象庁の発表など、公的な情報を入力してください。</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="source2" class="form-label">情報源2 <span class="text-danger">*</span></label>
+                        <textarea name="source2" id="source2" class="form-control" rows="5" placeholder="例：自治体の発表やニュース記事など、情報源の内容を貼り付けてください" required></textarea>
+                        <small class="form-text text-muted">自治体の発表など、別の情報源を入力してください。</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="source3" class="form-label">情報源3（オプション）</label>
+                        <textarea name="source3" id="source3" class="form-control" rows="5" placeholder="例：現地からの報告やSNSの情報など、情報源の内容を貼り付けてください"></textarea>
+                        <small class="form-text text-muted">現地レポートやSNSなど、追加の情報源があれば入力してください。</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="source4" class="form-label">情報源4（オプション）</label>
+                        <textarea name="source4" id="source4" class="form-control" rows="5" placeholder="例：専門家の解説や過去の類似事例など、情報源の内容を貼り付けてください"></textarea>
+                        <small class="form-text text-muted">専門家の解説など、別の角度からの情報があれば入力してください。</small>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i> 
+                        分析には1分程度かかる場合があります。分析が完了するまでお待ちください。
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">情報分析</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

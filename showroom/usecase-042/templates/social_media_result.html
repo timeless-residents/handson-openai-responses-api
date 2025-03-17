@@ -1,0 +1,103 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>SNS投稿</h1>
+            <div>
+                <a href="{{ url_for('social_media', disaster_id=disaster.id) }}" class="btn btn-primary">
+                    <i class="fas fa-sync"></i> 別の投稿を作成
+                </a>
+                <a href="{{ url_for('view_disaster', disaster_id=disaster.id) }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> 災害情報に戻る
+                </a>
+            </div>
+        </div>
+        
+        <div class="alert alert-{{ disaster.alert_level }} mt-3">
+            <h4>{{ disaster.title }}</h4>
+            <p>{{ disaster.description }}</p>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fas fa-share-alt"></i> {{ platform }}用の投稿
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        {% for post in posts %}
+                            <div class="social-post 
+                                {% if platform == 'Twitter/X' %}twitter-post
+                                {% elif platform == 'Facebook' %}facebook-post
+                                {% elif platform == 'Instagram' %}instagram-post
+                                {% elif platform == 'LINE' %}line-post{% endif %}">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        {% if platform == 'Twitter/X' %}
+                                            <i class="fab fa-x-twitter text-dark"></i>
+                                        {% elif platform == 'Facebook' %}
+                                            <i class="fab fa-facebook text-primary"></i>
+                                        {% elif platform == 'Instagram' %}
+                                            <i class="fab fa-instagram text-danger"></i>
+                                        {% elif platform == 'LINE' %}
+                                            <i class="fab fa-line text-success"></i>
+                                        {% endif %}
+                                        <strong>{{ platform }}</strong>
+                                    </div>
+                                    <div>
+                                        <button class="btn btn-sm btn-outline-secondary copy-btn" data-post="{{ post|replace('\n', '\\n')|replace('"', '\\"') }}">
+                                            <i class="fas fa-copy"></i> コピー
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="mt-2">
+                                    {{ post|replace('\n', '<br>')|safe }}
+                                </div>
+                            </div>
+                        {% endfor %}
+                        
+                        <div class="alert alert-info mt-3">
+                            <h5><i class="fas fa-lightbulb"></i> 投稿のタイミングについて</h5>
+                            <p>災害情報の発信には適切なタイミングが重要です：</p>
+                            <ul>
+                                <li><strong>初期告知</strong> - 災害発生直後に投稿し、基本情報を伝えます</li>
+                                <li><strong>定期更新</strong> - 状況の変化に応じて定期的に更新情報を投稿します（1～2時間ごと）</li>
+                                <li><strong>重要な変更時</strong> - 避難指示や警報レベルの変更など、重要な変更があった際に即時投稿します</li>
+                                <li><strong>終息時</strong> - 災害の終息や警報解除時に最終投稿を行います</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const copyButtons = document.querySelectorAll('.copy-btn');
+        copyButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const postText = this.getAttribute('data-post');
+                navigator.clipboard.writeText(postText).then(function() {
+                    const originalText = button.innerHTML;
+                    button.innerHTML = '<i class="fas fa-check"></i> コピー完了';
+                    setTimeout(() => {
+                        button.innerHTML = originalText;
+                    }, 2000);
+                }, function() {
+                    alert('コピーに失敗しました');
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}
